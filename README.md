@@ -41,7 +41,20 @@ uv sync
 uv run alembic upgrade head
 ```
 
-Done! The database is running and ready.
+### 5. Set up environment
+
+```bash
+cp .env.example .env
+# Edit .env and add your OPENAI_API_KEY
+```
+
+### 6. Run the server
+
+```bash
+uv run uvicorn app.main:app --reload
+```
+
+Open http://localhost:8000/docs to see the API.
 
 ---
 
@@ -57,3 +70,19 @@ uv add <package-name>
 # Run any Python command
 uv run <command>
 ```
+
+---
+
+## Temp Files (delete before production)
+
+These files are for development/demo only:
+
+- `scripts/demo.py` - Demo script for class presentation
+- `scripts/seed_test_data.py` - Seeds test data for Nashville
+- `inspection/db-viewer.html` - Simple DB viewer (open in browser)
+
+## TODO before launch
+
+- [ ] Wipe `curated_tasks` table - current data is test/seed data, need hand-picked tasks
+- [ ] Add real authentication (currently using placeholder user)
+- [ ] Delete temp files listed above
