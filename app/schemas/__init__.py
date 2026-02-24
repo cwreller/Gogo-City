@@ -12,6 +12,9 @@ from app.schemas.instances import (
     InstanceResponse,
     InstanceListItem,
     SharedRoutePreview,
+    UpdateInstanceStatusRequest,
+    UpdateTaskRequest,
+    TogglePublicRequest,
 )
 
 __all__ = [
@@ -25,4 +28,7 @@ __all__ = [
     "InstanceResponse",
     "InstanceListItem",
     "SharedRoutePreview",
+    "UpdateInstanceStatusRequest",
+    "UpdateTaskRequest",
+    "TogglePublicRequest",
 ]

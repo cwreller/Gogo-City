@@ -1,5 +1,6 @@
 """Pydantic schemas for route instances and sharing."""
 from decimal import Decimal
+from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -14,6 +15,18 @@ class ImportTemplateRequest(BaseModel):
 
 class ImportSharedRouteRequest(BaseModel):
     user_id: UUID = Field(..., description="ID of the importing user")
+
+
+class UpdateInstanceStatusRequest(BaseModel):
+    status: str = Field(..., description="New status: active, completed, or archived")
+
+
+class UpdateTaskRequest(BaseModel):
+    notes: Optional[str] = Field(None, description="User notes for this task")
+
+
+class TogglePublicRequest(BaseModel):
+    is_public: bool = Field(..., description="Whether the template should be public")
 
 
 # ── Response schemas ─────────────────────────────────────────────────

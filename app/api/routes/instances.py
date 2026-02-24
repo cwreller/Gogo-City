@@ -1,4 +1,4 @@
-"""Route instance endpoints: import a template, list instances, get instance detail."""
+"""Route instance endpoints: CRUD for instances and their tasks."""
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -11,6 +11,8 @@ from app.schemas.instances import (
     InstanceResponse,
     InstanceTaskResponse,
     ProgressResponse,
+    UpdateInstanceStatusRequest,
+    UpdateTaskRequest,
 )
 from app.services.instance_service import InstanceService
 
@@ -42,15 +44,7 @@ def _task_response(task) -> InstanceTaskResponse:
     )
 
 
-@router.post("/", response_model=InstanceResponse, status_code=201)
-def create_instance(body: ImportTemplateRequest, db: Session = Depends(get_db)):
-    """Import a template into a personal route instance."""
-    svc = InstanceService(db)
-    try:
-        instance = svc.import_template(body.template_id, body.user_id)
-    except ValueError as exc:
-        raise HTTPException(status_code=404, detail=str(exc))
-
+def _instance_response(instance) -> InstanceResponse:
     return InstanceResponse(
         id=instance.id,
         title=instance.title,
@@ -61,6 +55,17 @@ def create_instance(body: ImportTemplateRequest, db: Session = Depends(get_db)):
         progress=_progress(instance),
         tasks=[_task_response(t) for t in instance.tasks],
     )
+
+
+@router.post("/", response_model=InstanceResponse, status_code=201)
+def create_instance(body: ImportTemplateRequest, db: Session = Depends(get_db)):
+    """Import a template into a personal route instance."""
+    svc = InstanceService(db)
+    try:
+        instance = svc.import_template(body.template_id, body.user_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+    return _instance_response(instance)
 
 
 @router.get("/", response_model=list[InstanceListItem])
@@ -89,14 +94,63 @@ def get_instance(instance_id: UUID, user_id: UUID, db: Session = Depends(get_db)
     instance = svc.get_instance(instance_id, user_id)
     if not instance:
         raise HTTPException(status_code=404, detail="Instance not found")
+    return _instance_response(instance)
 
-    return InstanceResponse(
-        id=instance.id,
-        title=instance.title,
-        description=instance.description,
-        status=instance.status,
-        source_template_id=instance.source_template_id,
-        created_at=instance.created_at.isoformat(),
-        progress=_progress(instance),
-        tasks=[_task_response(t) for t in instance.tasks],
-    )
+
+@router.delete("/{instance_id}")
+def delete_instance(instance_id: UUID, user_id: UUID, db: Session = Depends(get_db)):
+    """Delete a route instance."""
+    svc = InstanceService(db)
+    if not svc.delete_instance(instance_id, user_id):
+        raise HTTPException(status_code=404, detail="Instance not found")
+    return {"status": "deleted"}
+
+
+@router.patch("/{instance_id}", response_model=InstanceResponse)
+def update_instance_status(
+    instance_id: UUID,
+    body: UpdateInstanceStatusRequest,
+    user_id: UUID,
+    db: Session = Depends(get_db),
+):
+    """Update an instance's status (active, completed, archived)."""
+    svc = InstanceService(db)
+    try:
+        instance = svc.update_status(instance_id, user_id, body.status)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    if not instance:
+        raise HTTPException(status_code=404, detail="Instance not found")
+    return _instance_response(instance)
+
+
+# ── Task-level endpoints ────────────────────────────────────────────
+
+@router.patch("/{instance_id}/tasks/{task_id}", response_model=InstanceTaskResponse)
+def update_task(
+    instance_id: UUID,
+    task_id: UUID,
+    body: UpdateTaskRequest,
+    user_id: UUID,
+    db: Session = Depends(get_db),
+):
+    """Update notes on an instance task."""
+    svc = InstanceService(db)
+    task = svc.update_task(instance_id, task_id, user_id, notes=body.notes)
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    return _task_response(task)
+
+
+@router.delete("/{instance_id}/tasks/{task_id}")
+def delete_task(
+    instance_id: UUID,
+    task_id: UUID,
+    user_id: UUID,
+    db: Session = Depends(get_db),
+):
+    """Remove a task from an instance."""
+    svc = InstanceService(db)
+    if not svc.delete_task(instance_id, task_id, user_id):
+        raise HTTPException(status_code=404, detail="Task not found")
+    return {"status": "deleted"}
