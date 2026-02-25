@@ -82,6 +82,9 @@ class CuratedTask(Base, UUIDMixin, TimestampMixin):
     )
     avg_duration_minutes: Mapped[Optional[int]] = mapped_column(Integer)
     
+    # XP awarded on completion
+    xp: Mapped[int] = mapped_column(Integer, server_default="0", nullable=False)
+    
     # Admin
     is_active: Mapped[bool] = mapped_column(Boolean, server_default="true", nullable=False)
     

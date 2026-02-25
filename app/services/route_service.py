@@ -163,6 +163,7 @@ class RouteService:
                 task_description=curated_task.task_description,
                 verification_hint=curated_task.verification_hint,
                 verification_type=curated_task.verification_type,
+                xp=curated_task.xp,
             )
             self.db.add(template_task)
         

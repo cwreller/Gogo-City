@@ -103,6 +103,9 @@ class TemplateTask(Base, UUIDMixin):
         nullable=False,
     )  # gps, photo, both
     
+    # XP awarded on completion (snapshotted from curated task)
+    xp: Mapped[int] = mapped_column(Integer, server_default="0", nullable=False)
+    
     # Author's custom note for this task
     notes: Mapped[Optional[str]] = mapped_column(String)
     
@@ -221,6 +224,9 @@ class InstanceTask(Base, UUIDMixin):
         server_default="gps",
         nullable=False,
     )
+    
+    # XP awarded on completion (snapshotted from template task)
+    xp: Mapped[int] = mapped_column(Integer, server_default="0", nullable=False)
     
     notes: Mapped[Optional[str]] = mapped_column(String)
     

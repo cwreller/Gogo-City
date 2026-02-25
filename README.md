@@ -83,9 +83,10 @@ These files are for development/demo only:
 
 ## TODO before launch
 
-- [ ] Wipe `curated_tasks` table - current data is test/seed data, need hand-picked tasks
-- [ ] Add real authentication (currently using placeholder user)
-- [ ] Delete temp files listed above
+- [ ] Delete temp files listed above (scripts/demo.py, scripts/seed_test_data.py, inspection/db-viewer.html)
+- [ ] Add `JWT_SECRET_KEY` to production environment (never use the default)
+- [ ] XP system — add `xp` to tasks, `total_xp` + `level` to users, award on check-in
+- [ ] Leaderboard endpoint — `GET /api/leaderboard`
 
 ---
 
@@ -109,28 +110,42 @@ Current fields sent to AI:
 
 ### 2. XP / Gamification System
 
-Do we even want to use XP if so we need to consider: 
+**Decided:** Yes, we want XP. Users accumulate XP across all cities and routes as they explore.
 
-**Option A:** Assign XP when creating curated tasks
-- Each task has a fixed XP value in the database
-- Pro: Simple, consistent
-- Con: Less flexibility
+**Approach:** Fixed XP per curated task (Option A). Each task gets an `xp` value in the CSV/database.
+- Simpler, predictable, no extra AI tokens
+- XP awarded on verified check-in
+- Need to add `xp` column to CSV, `curated_tasks`, `template_tasks`, `instance_tasks`
+- Need to add `total_xp` and `level` to `users`
 
-**Option B:** AI assigns XP during route generation
-- AI decides XP based on difficulty/time/uniqueness
-- Pro: Dynamic, contextual
-- Con: Less predictable, more tokens
+**Levels:** Need to define XP thresholds (e.g. 0-100 = Level 1, 100-300 = Level 2, etc.)
 
-**Questions:**
-- Do we want leaderboards? (daily, weekly, all-time?)
-- Badges/achievements?
-- Streaks for completing routes?
+**Leaderboard:** Global GoGoCity XP leaderboard, NOT per-route.
+- Rewards overall exploration, not speedrunning a single route
+- Could do daily/weekly/all-time tabs later
+
+**XP Formula** (auto-calculated by `scripts/assign_xp.py`):
+```
+xp = duration_xp + price_bonus + verification_bonus
+
+Duration:     2 XP per minute of midpoint (min 50). Works with any range.
+              e.g. 20-30 -> 50 | 45-60 -> 104 | 60-90 -> 150 | 90-120 -> 210
+Price bonus:  1 -> +0  | 2 -> +15  | 3 -> +30  | 4 -> +50
+Verify bonus: gps -> +0 | photo -> +25 | both -> +50
+```
+Rerun `uv run python scripts/assign_xp.py` after updating CSV fields. Use `--dry-run` to preview.
+
+**Level thresholds:** 0=L1, 200=L2, 500=L3, 1000=L4, 1750=L5, 2750=L6, 4000=L7, 5500=L8, 7500=L9, 10000=L10
+
+**Still to decide:**
+- Badges/achievements? (first route, first city, 10 check-ins, etc.) — probably post-MVP
+- Streaks? (complete a route every week) — probably post-MVP
 
 ### 3. Authentication
 
-- Email/password? Social login (Google/Apple)? Both?
-- Do we need usernames or just display names?
-- Account deletion / data export (GDPR)?
+**Done:** Email/password with JWT tokens (`POST /auth/register`, `POST /auth/login`). All endpoints protected via `Bearer` token.
+
+Future: social login (Google/Apple) can be added by swapping `app/core/auth.py` — the rest of the codebase won't need to change.
 
 ### 4. Route Task Ordering
 

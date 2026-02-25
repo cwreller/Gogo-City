@@ -109,6 +109,8 @@ def main():
                 name = row["name"].strip()
                 lat, lng = parse_lat_lng(row.get("lat", ""), row.get("lng", ""), name)
 
+                xp_val = int(row.get("xp", 0) or 0)
+
                 task = CuratedTask(
                     city_id=city.id,
                     name=name,
@@ -123,11 +125,12 @@ def main():
                     dietary_tags=[],
                     price_level=parse_price_level(row.get("price_level", "")),
                     avg_duration_minutes=parse_duration(row.get("avg_duration_minutes", "")),
+                    xp=xp_val,
                     is_active=True,
                 )
                 db.add(task)
                 tasks_imported += 1
-                print(f"  + {name} | {task.category} | vibe: {task.vibe_tags} | {task.avg_duration_minutes}min")
+                print(f"  + {name} | {task.category} | {xp_val} XP | {task.avg_duration_minutes}min")
 
         db.commit()
         print(f"\nDone! Imported {tasks_imported} curated tasks for Nashville.")

@@ -5,9 +5,11 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session, joinedload
 
+from app.core.auth import get_current_user
 from app.db.session import get_db
 from app.models.checkin import CheckIn
 from app.models.route import InstanceTask, RouteInstance
+from app.models.user import User, xp_to_level
 from app.schemas.checkins import CheckInRequest, CheckInResponse
 from app.services.verification_service import VerificationService
 
@@ -15,9 +17,13 @@ router = APIRouter()
 
 
 @router.post("/", response_model=CheckInResponse)
-def create_check_in(request: CheckInRequest, db: Session = Depends(get_db)):
+def create_check_in(
+    request: CheckInRequest,
+    db: Session = Depends(get_db),
+    user_id: UUID = Depends(get_current_user),
+):
     """Attempt to check in to an instance task. Runs verification based on the task type."""
-    
+
     task = (
         db.query(InstanceTask)
         .options(joinedload(InstanceTask.check_in))
@@ -26,16 +32,16 @@ def create_check_in(request: CheckInRequest, db: Session = Depends(get_db)):
     )
     if not task:
         raise HTTPException(status_code=404, detail="Instance task not found")
-    
+
     if task.check_in is not None:
         raise HTTPException(status_code=409, detail="Already checked in to this task")
-    
+
     instance = db.query(RouteInstance).filter(RouteInstance.id == task.instance_id).first()
     if not instance:
         raise HTTPException(status_code=404, detail="Route instance not found")
-    if instance.user_id != request.user_id:
+    if instance.user_id != user_id:
         raise HTTPException(status_code=403, detail="This is not your route instance")
-    
+
     verification = VerificationService()
     result = verification.verify(
         verification_type=task.verification_type,
@@ -48,7 +54,7 @@ def create_check_in(request: CheckInRequest, db: Session = Depends(get_db)):
         accuracy_meters=request.accuracy_meters,
         photo_base64=request.photo_base64,
     )
-    
+
     if not result.passed:
         raise HTTPException(
             status_code=422,
@@ -58,11 +64,11 @@ def create_check_in(request: CheckInRequest, db: Session = Depends(get_db)):
                 "reason": result.reason,
             },
         )
-    
+
     try:
         check_in = CheckIn(
             instance_task_id=task.id,
-            user_id=request.user_id,
+            user_id=user_id,
             verified_by=result.method,
             lat=request.user_lat,
             lng=request.user_lng,
@@ -71,11 +77,18 @@ def create_check_in(request: CheckInRequest, db: Session = Depends(get_db)):
             rating=request.rating,
         )
         db.add(check_in)
+
+        xp_earned = task.xp
+        user = db.query(User).filter(User.id == user_id).first()
+        if user and xp_earned > 0:
+            user.total_xp += xp_earned
+
         db.commit()
         db.refresh(check_in)
-        
+
         _check_auto_complete(db, instance)
-        
+
+        new_total = user.total_xp if user else 0
         return CheckInResponse(
             id=check_in.id,
             instance_task_id=check_in.instance_task_id,
@@ -85,6 +98,9 @@ def create_check_in(request: CheckInRequest, db: Session = Depends(get_db)):
             lat=check_in.lat,
             lng=check_in.lng,
             task_name=task.name,
+            xp_earned=xp_earned,
+            total_xp=new_total,
+            level=xp_to_level(new_total),
         )
     except Exception as e:
         db.rollback()
@@ -93,8 +109,18 @@ def create_check_in(request: CheckInRequest, db: Session = Depends(get_db)):
 
 
 @router.get("/instance/{instance_id}", response_model=list[CheckInResponse])
-def get_instance_check_ins(instance_id: UUID, db: Session = Depends(get_db)):
+def get_instance_check_ins(
+    instance_id: UUID,
+    db: Session = Depends(get_db),
+    user_id: UUID = Depends(get_current_user),
+):
     """Get all check-ins for a route instance."""
+    instance = db.query(RouteInstance).filter(RouteInstance.id == instance_id).first()
+    if not instance:
+        raise HTTPException(status_code=404, detail="Route instance not found")
+    if instance.user_id != user_id:
+        raise HTTPException(status_code=403, detail="This is not your route instance")
+
     check_ins = (
         db.query(CheckIn)
         .join(InstanceTask)
@@ -117,7 +143,11 @@ def get_instance_check_ins(instance_id: UUID, db: Session = Depends(get_db)):
 
 
 @router.get("/instance/{instance_id}/progress")
-def get_instance_progress(instance_id: UUID, db: Session = Depends(get_db)):
+def get_instance_progress(
+    instance_id: UUID,
+    db: Session = Depends(get_db),
+    user_id: UUID = Depends(get_current_user),
+):
     """Get progress for a route instance (completed vs total tasks)."""
     instance = (
         db.query(RouteInstance)
@@ -127,29 +157,63 @@ def get_instance_progress(instance_id: UUID, db: Session = Depends(get_db)):
     )
     if not instance:
         raise HTTPException(status_code=404, detail="Route instance not found")
-    
+    if instance.user_id != user_id:
+        raise HTTPException(status_code=403, detail="This is not your route instance")
+
     total = len(instance.tasks)
     completed = sum(1 for t in instance.tasks if t.check_in is not None)
-    
+
+    xp_earned = sum(t.xp for t in instance.tasks if t.check_in is not None)
+    xp_possible = sum(t.xp for t in instance.tasks)
+
     tasks_detail = [
         {
             "task_id": str(t.id),
             "name": t.name,
             "verification_type": t.verification_type,
+            "xp": t.xp,
             "completed": t.check_in is not None,
             "verified_by": t.check_in.verified_by if t.check_in else None,
         }
         for t in instance.tasks
     ]
-    
+
     return {
         "instance_id": str(instance_id),
         "status": instance.status,
         "completed": completed,
         "total": total,
         "progress_pct": round(completed / total * 100) if total > 0 else 0,
+        "xp_earned": xp_earned,
+        "xp_possible": xp_possible,
         "tasks": tasks_detail,
     }
+
+
+@router.get("/leaderboard")
+def get_leaderboard(
+    limit: int = 20,
+    db: Session = Depends(get_db),
+):
+    """Global XP leaderboard."""
+    users = (
+        db.query(User)
+        .filter(User.total_xp > 0)
+        .order_by(User.total_xp.desc())
+        .limit(limit)
+        .all()
+    )
+    return [
+        {
+            "rank": i + 1,
+            "user_id": str(u.id),
+            "username": u.username,
+            "display_name": u.display_name or u.username,
+            "total_xp": u.total_xp,
+            "level": xp_to_level(u.total_xp),
+        }
+        for i, u in enumerate(users)
+    ]
 
 
 def _check_auto_complete(db: Session, instance: RouteInstance):
@@ -157,7 +221,7 @@ def _check_auto_complete(db: Session, instance: RouteInstance):
     db.refresh(instance, ["tasks"])
     for task in instance.tasks:
         db.refresh(task, ["check_in"])
-    
+
     if instance.is_complete and instance.status == "active":
         instance.status = "completed"
         from datetime import datetime, timezone
