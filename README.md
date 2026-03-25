@@ -73,20 +73,11 @@ uv run <command>
 
 ---
 
-## Temp Files (delete before production)
-
-These files are for development/demo only:
-
-- `scripts/demo.py` - Demo script for class presentation
-- `scripts/seed_test_data.py` - Seeds test data for Nashville
-- `inspection/db-viewer.html` - Simple DB viewer (open in browser)
-
 ## TODO before launch
 
-- [ ] Delete temp files listed above (scripts/demo.py, scripts/seed_test_data.py, inspection/db-viewer.html)
 - [ ] Add `JWT_SECRET_KEY` to production environment (never use the default)
-- [ ] XP system — add `xp` to tasks, `total_xp` + `level` to users, award on check-in
-- [ ] Leaderboard endpoint — `GET /api/leaderboard`
+- [x] XP system — add `xp` to tasks, `total_xp` + `level` to users, award on check-in
+- [x] Leaderboard endpoint — `GET /api/leaderboard`
 
 ---
 

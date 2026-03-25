@@ -27,6 +27,7 @@ export interface Instance {
   description?: string;
   status: string;
   source_template_id?: string;
+  share_code?: string;
   created_at: string;
   progress: Progress;
   tasks: InstanceTask[];
@@ -59,4 +60,9 @@ export async function getInstance(id: string) {
 
 export async function deleteInstance(id: string) {
   await api.delete(`/instances/${id}`);
+}
+
+export async function updateInstanceStatus(id: string, status: string) {
+  const { data } = await api.patch<Instance>(`/instances/${id}`, { status });
+  return data;
 }

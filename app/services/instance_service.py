@@ -60,7 +60,8 @@ class InstanceService:
         stmt = (
             select(RouteInstance)
             .options(
-                joinedload(RouteInstance.tasks).joinedload(InstanceTask.check_in)
+                joinedload(RouteInstance.tasks).joinedload(InstanceTask.check_in),
+                joinedload(RouteInstance.source_template),
             )
             .where(RouteInstance.id == instance_id, RouteInstance.user_id == user_id)
         )

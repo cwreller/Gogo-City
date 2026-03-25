@@ -47,12 +47,16 @@ def _task_response(task) -> InstanceTaskResponse:
 
 
 def _instance_response(instance) -> InstanceResponse:
+    share_code = None
+    if instance.source_template:
+        share_code = instance.source_template.share_code
     return InstanceResponse(
         id=instance.id,
         title=instance.title,
         description=instance.description,
         status=instance.status,
         source_template_id=instance.source_template_id,
+        share_code=share_code,
         created_at=instance.created_at.isoformat(),
         progress=_progress(instance),
         tasks=[_task_response(t) for t in instance.tasks],

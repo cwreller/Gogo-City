@@ -60,6 +60,7 @@ class InstanceResponse(BaseModel):
     description: str | None = None
     status: str
     source_template_id: UUID | None = None
+    share_code: str | None = None
     created_at: str
     progress: ProgressResponse
     tasks: list[InstanceTaskResponse]

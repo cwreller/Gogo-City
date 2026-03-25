@@ -8,6 +8,7 @@ import GeneratePage from './pages/GeneratePage';
 import RoutePage from './pages/RoutePage';
 import LeaderboardPage from './pages/LeaderboardPage';
 import ProfilePage from './pages/ProfilePage';
+import ImportPage from './pages/ImportPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
@@ -36,6 +37,7 @@ function AppRoutes() {
       <Route path="/route/:instanceId" element={<ProtectedRoute><AppLayout><RoutePage /></AppLayout></ProtectedRoute>} />
       <Route path="/leaderboard" element={<ProtectedRoute><AppLayout><LeaderboardPage /></AppLayout></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute><AppLayout><ProfilePage /></AppLayout></ProtectedRoute>} />
+      <Route path="/import/:shareCode" element={<ProtectedRoute><AppLayout><ImportPage /></AppLayout></ProtectedRoute>} />
     </Routes>
   );
 }

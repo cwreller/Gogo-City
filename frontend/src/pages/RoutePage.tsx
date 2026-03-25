@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getInstance, Instance } from '../api/instances';
 import { getProgress, ProgressDetail } from '../api/checkins';
 import CheckInModal from '../components/CheckInModal';
-import { ArrowLeft, MapPin, Camera, Shield, Zap, Check } from 'lucide-react';
+import { ArrowLeft, MapPin, Camera, Shield, Zap, Check, Share2 } from 'lucide-react';
 
 const VERIFY_ICON = {
   gps: MapPin,
@@ -17,6 +17,7 @@ export default function RoutePage() {
   const [progress, setProgress] = useState<ProgressDetail | null>(null);
   const [checkInTaskId, setCheckInTaskId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
   const navigate = useNavigate();
 
   const load = async () => {
@@ -39,11 +40,34 @@ export default function RoutePage() {
 
   const checkInTask = instance.tasks.find((t) => t.id === checkInTaskId);
 
+  const handleShare = async () => {
+    if (!instance.share_code) return;
+    const url = `${window.location.origin}/import/${instance.share_code}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      prompt('Copy this link:', url);
+    }
+  };
+
   return (
     <div className="px-4 pt-6 pb-24">
-      <button onClick={() => navigate('/')} className="flex items-center gap-1 text-xs text-[var(--color-text-muted)] mb-3 hover:text-[var(--color-text)] uppercase tracking-widest">
-        <ArrowLeft size={14} /> Back
-      </button>
+      <div className="flex items-center justify-between mb-3">
+        <button onClick={() => navigate('/')} className="flex items-center gap-1 text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text)] uppercase tracking-widest">
+          <ArrowLeft size={14} /> Back
+        </button>
+        {instance.share_code && (
+          <button
+            onClick={handleShare}
+            className="flex items-center gap-1 px-3 py-1.5 text-[9px] uppercase tracking-widest border-2 border-[var(--color-border)] bg-white hover:bg-[var(--color-surface-light)] btn-retro"
+          >
+            <Share2 size={12} />
+            {copied ? 'Copied!' : 'Share'}
+          </button>
+        )}
+      </div>
 
       <h1 className="text-sm font-bold">{instance.title}</h1>
       <p className="font-sans text-xs text-[var(--color-text-muted)] mb-3">{instance.description}</p>
