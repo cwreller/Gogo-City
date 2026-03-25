@@ -35,19 +35,45 @@ def verify_password(plain: str, hashed: str) -> bool:
 
 # ── JWT helpers ──────────────────────────────────────────────────────
 
-def create_access_token(user_id: UUID, username: str = "", display_name: str = "") -> str:
+def _admin_email_list() -> list[str]:
+    settings = get_settings()
+    return [e.strip().lower() for e in settings.admin_emails.split(",") if e.strip()]
+
+
+def create_access_token(user_id: UUID, username: str = "", display_name: str = "", email: str = "") -> str:
     settings = get_settings()
     expire = datetime.now(timezone.utc) + timedelta(minutes=settings.jwt_expire_minutes)
     payload = {
         "sub": str(user_id),
         "username": username,
         "display_name": display_name or username,
+        "email": email,
+        "is_admin": email.lower() in _admin_email_list() if email else False,
         "exp": expire,
     }
     return jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
 
 
 # ── FastAPI dependency ───────────────────────────────────────────────
+
+def _decode_token(credentials: HTTPAuthorizationCredentials) -> dict:
+    settings = get_settings()
+    try:
+        payload = jwt.decode(
+            credentials.credentials,
+            settings.jwt_secret_key,
+            algorithms=[settings.jwt_algorithm],
+        )
+        if not payload.get("sub"):
+            raise JWTError("missing sub")
+        return payload
+    except (JWTError, ValueError):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
 
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(_bearer),
@@ -57,20 +83,19 @@ def get_current_user(
     Raises HTTP 401 if the token is missing, expired, or invalid.
     To swap auth providers, replace only this function.
     """
-    settings = get_settings()
-    try:
-        payload = jwt.decode(
-            credentials.credentials,
-            settings.jwt_secret_key,
-            algorithms=[settings.jwt_algorithm],
-        )
-        user_id_str: str | None = payload.get("sub")
-        if not user_id_str:
-            raise JWTError("missing sub")
-        return UUID(user_id_str)
-    except (JWTError, ValueError):
+    payload = _decode_token(credentials)
+    return UUID(payload["sub"])
+
+
+def get_current_admin(
+    credentials: HTTPAuthorizationCredentials = Depends(_bearer),
+) -> UUID:
+    """Like get_current_user but raises 403 if the user isn't an admin."""
+    payload = _decode_token(credentials)
+    email = payload.get("email", "")
+    if email.lower() not in _admin_email_list():
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token",
-            headers={"WWW-Authenticate": "Bearer"},
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required",
         )
+    return UUID(payload["sub"])

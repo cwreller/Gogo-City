@@ -67,7 +67,7 @@ export default function GeneratePage() {
 
   if (result) {
     return (
-      <div className="px-4 pt-6 pb-24">
+      <div className="px-5 pt-8 pb-24 page-enter">
         <h1 className="text-sm mb-1">{result.title}</h1>
         <p className="font-sans text-sm text-[var(--color-text-muted)] mb-4">{result.city_name}</p>
 
@@ -124,7 +124,7 @@ export default function GeneratePage() {
   }
 
   return (
-    <div className="px-4 pt-6 pb-24">
+    <div className="px-5 pt-8 pb-24 page-enter">
       <h1 className="text-sm mb-1 uppercase tracking-widest">Generate Route</h1>
       <p className="font-sans text-xs text-[var(--color-text-muted)] mb-6">Tell us what you're looking for</p>
 

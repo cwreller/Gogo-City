@@ -28,6 +28,12 @@ class Settings(BaseSettings):
     # Cloudinary
     cloudinary_url: str = ""
 
+    # Railway (reference only, not used by local app)
+    railway_database_url: str = ""
+
+    # Admin
+    admin_emails: str = ""
+
     # App settings
     debug: bool = False
 

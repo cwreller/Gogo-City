@@ -4,6 +4,7 @@ import { jwtDecode } from './jwt';
 interface AuthState {
   token: string | null;
   userId: string | null;
+  isAdmin: boolean;
   isAuthenticated: boolean;
   login: (token: string) => void;
   logout: () => void;
@@ -12,6 +13,7 @@ interface AuthState {
 const AuthContext = createContext<AuthState>({
   token: null,
   userId: null,
+  isAdmin: false,
   isAuthenticated: false,
   login: () => {},
   logout: () => {},
@@ -20,7 +22,9 @@ const AuthContext = createContext<AuthState>({
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
 
-  const userId = token ? jwtDecode(token) : null;
+  const payload = token ? jwtDecode(token) : null;
+  const userId = payload?.sub ?? null;
+  const isAdmin = payload?.is_admin ?? false;
 
   useEffect(() => {
     if (token) {
@@ -34,7 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => setToken(null);
 
   return (
-    <AuthContext.Provider value={{ token, userId, isAuthenticated: !!token, login, logout }}>
+    <AuthContext.Provider value={{ token, userId, isAdmin, isAuthenticated: !!token, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

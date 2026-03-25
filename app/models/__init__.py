@@ -6,6 +6,7 @@ from app.models.curated_task import CuratedTask
 from app.models.place import PlacesCache
 from app.models.route import RouteTemplate, TemplateTask, RouteInstance, InstanceTask
 from app.models.checkin import CheckIn
+from app.models.task_submission import TaskSubmission
 
 __all__ = [
     "Base",
@@ -18,4 +19,5 @@ __all__ = [
     "RouteInstance",
     "InstanceTask",
     "CheckIn",
+    "TaskSubmission",
 ]

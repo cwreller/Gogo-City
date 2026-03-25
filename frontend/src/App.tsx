@@ -9,6 +9,8 @@ import RoutePage from './pages/RoutePage';
 import LeaderboardPage from './pages/LeaderboardPage';
 import ProfilePage from './pages/ProfilePage';
 import ImportPage from './pages/ImportPage';
+import SubmitTaskPage from './pages/SubmitTaskPage';
+import AdminReviewPage from './pages/AdminReviewPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
@@ -38,6 +40,8 @@ function AppRoutes() {
       <Route path="/leaderboard" element={<ProtectedRoute><AppLayout><LeaderboardPage /></AppLayout></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute><AppLayout><ProfilePage /></AppLayout></ProtectedRoute>} />
       <Route path="/import/:shareCode" element={<ProtectedRoute><AppLayout><ImportPage /></AppLayout></ProtectedRoute>} />
+      <Route path="/submit-task" element={<ProtectedRoute><AppLayout><SubmitTaskPage /></AppLayout></ProtectedRoute>} />
+      <Route path="/admin/submissions" element={<ProtectedRoute><AppLayout><AdminReviewPage /></AppLayout></ProtectedRoute>} />
     </Routes>
   );
 }

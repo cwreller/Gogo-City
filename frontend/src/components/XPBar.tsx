@@ -42,19 +42,20 @@ export default function XPBar({ xp, level, compact }: Props) {
   }
 
   return (
-    <div className="card-retro p-4">
+    <div className="card-retro p-4" style={{ boxShadow: '0 4px 12px rgba(229, 57, 53, 0.08)' }}>
       <div className="flex justify-between items-center mb-3">
-        <span className="text-sm bg-[var(--color-primary)] text-white px-3 py-1 border-2 border-[var(--color-primary-dark)] uppercase tracking-widest">
+        <span className="text-sm bg-[var(--color-primary)] text-white px-3 py-1 rounded-sm border-2 border-[var(--color-primary-dark)] uppercase tracking-widest"
+          style={{ boxShadow: '0 2px 8px rgba(229, 57, 53, 0.3)' }}>
           Level {level}
         </span>
-        <span className="text-sm text-[var(--color-primary)]">{xp} XP</span>
+        <span className="text-sm font-bold text-[var(--color-primary)]">{xp} XP</span>
       </div>
-      <div className="progress-retro h-4">
-        <div className="progress-retro-fill h-full transition-all duration-500" style={{ width: `${progress}%` }} />
+      <div className="progress-retro h-5">
+        <div className="progress-retro-fill h-full" style={{ width: `${progress}%` }} />
       </div>
-      <div className="flex justify-between mt-1">
-        <span className="text-[8px] text-[var(--color-text-muted)]">{prev}</span>
-        <span className="text-[8px] text-[var(--color-text-muted)]">{next}</span>
+      <div className="flex justify-between mt-1.5">
+        <span className="font-sans text-[9px] text-[var(--color-text-muted)]">{prev} XP</span>
+        <span className="font-sans text-[9px] text-[var(--color-text-muted)]">{next} XP</span>
       </div>
     </div>
   );

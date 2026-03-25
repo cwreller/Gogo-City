@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getInstance, Instance } from '../api/instances';
 import { getProgress, ProgressDetail } from '../api/checkins';
 import CheckInModal from '../components/CheckInModal';
-import { ArrowLeft, MapPin, Camera, Shield, Zap, Check, Share2 } from 'lucide-react';
+import RouteMap from '../components/RouteMap';
+import { ArrowLeft, MapPin, Camera, Shield, Zap, Check, Share2, List, Map } from 'lucide-react';
 
 const VERIFY_ICON = {
   gps: MapPin,
@@ -18,6 +19,7 @@ export default function RoutePage() {
   const [checkInTaskId, setCheckInTaskId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [view, setView] = useState<'list' | 'map'>('list');
   const navigate = useNavigate();
 
   const load = async () => {
@@ -53,7 +55,7 @@ export default function RoutePage() {
   };
 
   return (
-    <div className="px-4 pt-6 pb-24">
+    <div className="px-5 pt-8 pb-24 page-enter">
       <div className="flex items-center justify-between mb-3">
         <button onClick={() => navigate('/')} className="flex items-center gap-1 text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text)] uppercase tracking-widest">
           <ArrowLeft size={14} /> Back
@@ -85,6 +87,32 @@ export default function RoutePage() {
         </div>
       </div>
 
+      <div className="flex gap-1 mb-4">
+        <button
+          onClick={() => setView('list')}
+          className={`flex items-center gap-1.5 px-3 py-1.5 text-[9px] uppercase tracking-widest border-2 transition-colors ${
+            view === 'list'
+              ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-white'
+              : 'border-[var(--color-border)] bg-white text-[var(--color-text-muted)] hover:bg-[var(--color-surface-light)]'
+          }`}
+        >
+          <List size={14} /> List
+        </button>
+        <button
+          onClick={() => setView('map')}
+          className={`flex items-center gap-1.5 px-3 py-1.5 text-[9px] uppercase tracking-widest border-2 transition-colors ${
+            view === 'map'
+              ? 'border-[var(--color-primary)] bg-[var(--color-primary)] text-white'
+              : 'border-[var(--color-border)] bg-white text-[var(--color-text-muted)] hover:bg-[var(--color-surface-light)]'
+          }`}
+        >
+          <Map size={14} /> Map
+        </button>
+      </div>
+
+      {view === 'map' ? (
+        <RouteMap tasks={instance.tasks} onTaskClick={(id) => setCheckInTaskId(id)} />
+      ) : (
       <div className="space-y-3">
         {instance.tasks.map((task) => {
           const progTask = progress.tasks.find((t) => t.task_id === task.id);
@@ -97,10 +125,10 @@ export default function RoutePage() {
               className={`card-retro p-4 border-l-4 ${completed ? 'border-[var(--color-success)] opacity-60' : 'border-[var(--color-primary)]'}`}
             >
               <div className="flex items-start gap-3">
-                <div className={`w-8 h-8 flex items-center justify-center shrink-0 border-2 ${
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${
                   completed
-                    ? 'bg-[var(--color-success)] border-[var(--color-success)] text-white'
-                    : 'bg-white border-[var(--color-border)] text-[var(--color-text-muted)]'
+                    ? 'bg-[var(--color-success)] text-white shadow-sm'
+                    : 'bg-[var(--color-surface-light)] text-[var(--color-text-muted)] border border-[var(--color-border)]'
                 }`}>
                   {completed ? <Check size={16} /> : <Icon size={16} />}
                 </div>
@@ -135,6 +163,7 @@ export default function RoutePage() {
           );
         })}
       </div>
+      )}
 
       {checkInTask && (
         <CheckInModal

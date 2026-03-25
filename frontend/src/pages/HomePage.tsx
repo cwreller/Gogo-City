@@ -152,15 +152,15 @@ export default function HomePage() {
   };
 
   return (
-    <div className="px-4 pt-6 pb-24">
-      <h1 className="text-xl mb-0.5 tracking-tight">GoGoCity</h1>
-      <p className="text-[9px] text-[var(--color-text-muted)] mb-4 uppercase tracking-widest">Explore. Complete. Level up.</p>
+    <div className="px-5 pt-8 pb-24 page-enter">
+      <h1 className="text-xl mb-1 tracking-tight">GoGoCity</h1>
+      <p className="text-[9px] text-[var(--color-text-muted)] mb-5 uppercase tracking-[0.2em]">Explore. Complete. Level up.</p>
 
       <XPBar xp={userXP} level={userLevel} />
 
       <button
         onClick={() => navigate('/generate')}
-        className="w-full mt-5 py-4 bg-[var(--color-primary)] text-white text-sm uppercase tracking-widest btn-retro flex items-center justify-center gap-2"
+        className="w-full mt-5 py-4 text-white text-sm uppercase tracking-widest btn-retro btn-primary flex items-center justify-center gap-2"
       >
         <Compass size={20} />
         New Quest
@@ -171,8 +171,8 @@ export default function HomePage() {
       ) : (
         <>
           {active.length > 0 && (
-            <section className="mt-6">
-              <h2 className="text-xs mb-3 uppercase tracking-widest text-[var(--color-primary)]">Active Quests</h2>
+            <section className="mt-7">
+              <h2 className="text-xs mb-3 uppercase tracking-[0.15em] text-[var(--color-primary)]">Active Quests</h2>
               <div className="space-y-3">
                 {active.map((inst) => renderCard(inst, 'active'))}
               </div>
@@ -180,8 +180,8 @@ export default function HomePage() {
           )}
 
           {completed.length > 0 && (
-            <section className="mt-6">
-              <h2 className="text-xs mb-3 uppercase tracking-widest text-[var(--color-success)] flex items-center gap-1">
+            <section className="mt-7">
+              <h2 className="text-xs mb-3 uppercase tracking-[0.15em] text-[var(--color-success)] flex items-center gap-1">
                 <Zap size={14} />
                 Completed
               </h2>

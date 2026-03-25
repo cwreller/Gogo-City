@@ -11,3 +11,8 @@ export async function login(email: string, password: string) {
   const { data } = await api.post('/auth/login', { email, password });
   return data as { access_token: string };
 }
+
+export async function updateMe(displayName: string) {
+  const { data } = await api.patch('/auth/me', { display_name: displayName });
+  return data as { access_token: string };
+}

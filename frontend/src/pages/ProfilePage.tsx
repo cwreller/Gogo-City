@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { listInstances, InstanceListItem } from '../api/instances';
 import { getLeaderboard } from '../api/checkins';
+import { updateMe } from '../api/auth';
 import XPBar from '../components/XPBar';
-import { LogOut, Route, CheckCircle, MapPin } from 'lucide-react';
+import { LogOut, Route, CheckCircle, MapPin, Pencil, PlusCircle, Shield } from 'lucide-react';
 
 export default function ProfilePage() {
   const auth = useAuth();
@@ -15,6 +16,35 @@ export default function ProfilePage() {
   const [xp, setXP] = useState(0);
   const [level, setLevel] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(false);
+  const [editValue, setEditValue] = useState('');
+  const [saving, setSaving] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const startEditing = () => {
+    setEditValue(displayName || username || '');
+    setEditing(true);
+    setTimeout(() => inputRef.current?.focus(), 0);
+  };
+
+  const saveDisplayName = async () => {
+    const trimmed = editValue.trim();
+    if (!trimmed || trimmed === displayName) {
+      setEditing(false);
+      return;
+    }
+    setSaving(true);
+    try {
+      const { access_token } = await updateMe(trimmed);
+      auth.login(access_token);
+      setDisplayName(trimmed);
+    } catch (err) {
+      console.error('Failed to update display name', err);
+    } finally {
+      setSaving(false);
+      setEditing(false);
+    }
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -61,10 +91,26 @@ export default function ProfilePage() {
   if (loading) return <div className="px-4 pt-6 text-center text-xs text-[var(--color-text-muted)] uppercase tracking-widest">Loading...</div>;
 
   return (
-    <div className="px-4 pt-6 pb-24">
+    <div className="px-5 pt-8 pb-24 page-enter">
       <div className="flex justify-between items-start mb-6">
         <div>
-          <h1 className="text-lg font-bold">{displayName || username || 'EXPLORER'}</h1>
+          {editing ? (
+            <input
+              ref={inputRef}
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              onBlur={saveDisplayName}
+              onKeyDown={(e) => { if (e.key === 'Enter') saveDisplayName(); if (e.key === 'Escape') setEditing(false); }}
+              disabled={saving}
+              maxLength={50}
+              className="text-lg font-bold bg-transparent border-b-2 border-[var(--color-primary)] outline-none w-full"
+            />
+          ) : (
+            <button onClick={startEditing} className="flex items-center gap-1.5 group">
+              <h1 className="text-lg font-bold">{displayName || username || 'EXPLORER'}</h1>
+              <Pencil size={14} className="text-[var(--color-text-muted)] opacity-0 group-hover:opacity-100 transition-opacity" />
+            </button>
+          )}
           {username && (
             <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-widest">@{username}</p>
           )}
@@ -80,7 +126,26 @@ export default function ProfilePage() {
 
       <XPBar xp={xp} level={level} />
 
-      <div className="grid grid-cols-3 gap-3 mt-5">
+      <div className="flex gap-2 mt-5 mb-3">
+        <button
+          onClick={() => navigate('/submit-task')}
+          className="flex-1 py-3 bg-white text-xs uppercase tracking-widest btn-retro flex items-center justify-center gap-2"
+        >
+          <PlusCircle size={16} />
+          Suggest Task
+        </button>
+        {auth.isAdmin && (
+          <button
+            onClick={() => navigate('/admin/submissions')}
+            className="flex-1 py-3 bg-[var(--color-primary)] text-white text-xs uppercase tracking-widest btn-retro flex items-center justify-center gap-2"
+          >
+            <Shield size={16} />
+            Admin Review
+          </button>
+        )}
+      </div>
+
+      <div className="grid grid-cols-3 gap-3">
         <div className="card-retro p-3 text-center">
           <Route size={20} className="mx-auto mb-1 text-[var(--color-primary)]" />
           <p className="text-sm font-bold">{totalRoutes}</p>

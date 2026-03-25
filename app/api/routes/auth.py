@@ -1,11 +1,13 @@
-"""Auth endpoints: register and login."""
+"""Auth endpoints: register, login, and profile update."""
+from uuid import UUID
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.core.auth import create_access_token, hash_password, verify_password
+from app.core.auth import create_access_token, get_current_user, hash_password, verify_password
 from app.db.session import get_db
 from app.models import User
-from app.schemas.auth import LoginRequest, RegisterRequest, TokenResponse
+from app.schemas.auth import LoginRequest, RegisterRequest, TokenResponse, UpdateMeRequest
 
 router = APIRouter()
 
@@ -29,7 +31,7 @@ def register(body: RegisterRequest, db: Session = Depends(get_db)):
     db.refresh(user)
 
     return TokenResponse(
-        access_token=create_access_token(user.id, user.username, user.display_name or "")
+        access_token=create_access_token(user.id, user.username, user.display_name or "", user.email)
     )
 
 
@@ -44,5 +46,24 @@ def login(body: LoginRequest, db: Session = Depends(get_db)):
         )
 
     return TokenResponse(
-        access_token=create_access_token(user.id, user.username, user.display_name or "")
+        access_token=create_access_token(user.id, user.username, user.display_name or "", user.email)
+    )
+
+
+@router.patch("/me", response_model=TokenResponse)
+def update_me(
+    body: UpdateMeRequest,
+    db: Session = Depends(get_db),
+    user_id: UUID = Depends(get_current_user),
+):
+    """Update the current user's profile and return a fresh token."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if body.display_name is not None:
+        user.display_name = body.display_name
+    db.commit()
+    db.refresh(user)
+    return TokenResponse(
+        access_token=create_access_token(user.id, user.username, user.display_name or "", user.email)
     )

@@ -14,6 +14,10 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class UpdateMeRequest(BaseModel):
+    display_name: str | None = None
+
+
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
