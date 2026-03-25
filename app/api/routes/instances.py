@@ -70,6 +70,18 @@ def create_instance(
     user_id: UUID = Depends(get_current_user),
 ):
     """Import a template into a personal route instance."""
+    from app.models.route import RouteInstance
+    from sqlalchemy import select
+    existing = db.execute(
+        select(RouteInstance).where(
+            RouteInstance.source_template_id == body.template_id,
+            RouteInstance.user_id == user_id,
+            RouteInstance.status == "active",
+        )
+    ).scalars().first()
+    if existing:
+        raise HTTPException(status_code=409, detail="You already have this quest in your active routes.")
+
     svc = InstanceService(db)
     try:
         instance = svc.import_template(body.template_id, user_id)
