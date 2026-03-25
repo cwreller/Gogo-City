@@ -1,4 +1,5 @@
 """FastAPI application entry point."""
+import cloudinary
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -6,6 +7,15 @@ from app.api import api_router
 from app.core.config import get_settings
 
 settings = get_settings()
+
+if settings.cloudinary_url:
+    from urllib.parse import urlparse
+    _c = urlparse(settings.cloudinary_url)
+    cloudinary.config(
+        cloud_name=_c.hostname,
+        api_key=_c.username,
+        api_secret=_c.password,
+    )
 
 app = FastAPI(
     title="GoGoCity API",

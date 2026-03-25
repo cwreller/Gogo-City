@@ -2,6 +2,9 @@
 import traceback
 from uuid import UUID
 
+import cloudinary
+import cloudinary.uploader
+from urllib.parse import urlparse
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session, joinedload
 
@@ -10,10 +13,17 @@ from app.db.session import get_db
 from app.models.checkin import CheckIn
 from app.models.route import InstanceTask, RouteInstance
 from app.models.user import User, xp_to_level
+from app.core.config import get_settings
 from app.schemas.checkins import CheckInRequest, CheckInResponse
 from app.services.verification_service import VerificationService
 
 router = APIRouter()
+
+# Configure Cloudinary explicitly on module load
+_settings = get_settings()
+if _settings.cloudinary_url:
+    _c = urlparse(_settings.cloudinary_url)
+    cloudinary.config(cloud_name=_c.hostname, api_key=_c.username, api_secret=_c.password)
 
 
 @router.post("/", response_model=CheckInResponse)
@@ -65,6 +75,19 @@ def create_check_in(
             },
         )
 
+    photo_url = None
+    if request.photo_base64:
+        try:
+            upload_result = cloudinary.uploader.upload(
+                request.photo_base64,
+                folder="gogocity/checkins",
+                public_id=str(request.instance_task_id),
+                overwrite=True,
+            )
+            photo_url = upload_result["secure_url"]
+        except Exception as e:
+            print(f"Cloudinary upload failed (non-fatal): {e}")
+
     try:
         check_in = CheckIn(
             instance_task_id=task.id,
@@ -72,7 +95,7 @@ def create_check_in(
             verified_by=result.method,
             lat=request.user_lat,
             lng=request.user_lng,
-            photo_url=None,  # TODO: upload photo to S3/Cloudinary and store URL
+            photo_url=photo_url,
             notes=request.notes,
             rating=request.rating,
         )

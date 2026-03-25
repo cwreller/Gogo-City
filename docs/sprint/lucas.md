@@ -34,7 +34,7 @@
 
 ## Up Next
 
-### Photo Storage (Cloudinary)
+### ~~Photo Storage (Cloudinary)~~ ✅ DONE
 Wire up real photo storage so check-in photos are actually saved, not thrown away.
 
 **Steps:**
