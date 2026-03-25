@@ -1,60 +1,89 @@
 # Catherine - Check-ins, Gamification & Data Enrichment
 
-## Tasks
+## Status
+Most of the original tasks were completed by Lucas. See `lucas.md` for what's done.
 
-### Data Enrichment
-- [ ] Enrich Nashville CSV - add `vibe_tags`, `price_level` (1-4), `avg_duration_minutes`, `lat`/`lng` for each of the 44 tasks
-- [ ] CSV is at `nashville_template_tasks.csv` in the project root
-- [ ] See `app/models/curated_task.py` for all the fields each task supports
+## Up Next
 
-### Check-ins
-- [ ] Build POST `/api/check-ins` - create a check-in for an instance task
-- [ ] GPS verification logic (compare user lat/lng to task lat/lng, pass if within X meters)
-- [ ] Decide GPS radius threshold (50m? 100m? 200m?)
-- [ ] Prevent duplicate check-ins (one check-in per instance task, already enforced in DB)
+### Display Name Editing on Profile
 
-### Progress
-- [ ] Build GET `/api/instances/{id}/progress` - return completed vs total tasks
+Right now the profile page shows your display name but you can't change it. Add an edit flow.
 
-### Gamification / XP
-- [ ] Propose XP point values (per verification type? per task difficulty?)
-- [ ] Add `xp` column to `curated_tasks` if we go with fixed XP per task
-- [ ] Write Alembic migration for any new columns
-- [ ] Build GET `/api/leaderboard` (if time)
+**Backend — add a PATCH `/api/auth/me` endpoint in `app/api/routes/auth.py`:**
+```python
+from app.core.auth import get_current_user
+
+@router.patch("/me", response_model=TokenResponse)
+def update_me(body: UpdateMeRequest, db: Session = Depends(get_db), user_id: UUID = Depends(get_current_user)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if body.display_name is not None:
+        user.display_name = body.display_name
+    db.commit()
+    db.refresh(user)
+    return TokenResponse(access_token=create_access_token(user.id, user.username, user.display_name or ""))
+```
+
+Add `UpdateMeRequest` to `app/schemas/auth.py`:
+```python
+class UpdateMeRequest(BaseModel):
+    display_name: str | None = None
+```
+
+**Frontend — edit mode on `ProfilePage.tsx`:**
+- Add a small pencil icon next to the display name
+- Clicking it swaps the name into an `<input>` with Save / Cancel buttons
+- On save, call `PATCH /api/auth/me` with the new display name
+- Update the JWT token in localStorage with the response (the backend returns a fresh token)
+- Update the displayed name without reloading
+
+### Leaderboard UI Polish
+The leaderboard page exists but can be improved:
+
+- Highlight the current logged-in user's row
+- Add a gold/silver/bronze badge for ranks 1/2/3
+- Show level next to username (e.g. "Lv. 4")
+- Data comes from `GET /api/check-ins/leaderboard`
+
+### Add Chicago (Data Task)
+
+Nashville is the only city. Add Chicago as a second city.
+
+**CSV columns required** (match Nashville exactly):
+
+| Column | Description | Example |
+|--------|-------------|---------|
+| `name` | Short task name | `Deep Dish Standoff` |
+| `category` | One of: `food`, `bars`, `museums`, `nature`, `street art`, `music`, `active`, `cafes`, `shopping`, `photo spots` | `food` |
+| `description` | What the user does — fun and specific, 1-3 sentences | `Go to Lou Malnati's and order the deep dish...` |
+| `verification_type` | `gps`, `photo`, or `both` | `photo` |
+| `vibe_tags` | Comma-separated from: `foodie, adventurous, chill, cultural, nightlife, music, outdoors, photography, social, history, active, romantic` | `foodie,cultural` |
+| `price_level` | 1 = free/cheap, 2 = $10-, 3 = $10-30, 4 = $30+ | `3` |
+| `avg_duration_minutes` | Range like `45-60` or `60-90` | `45-60` |
+| `lat` | Latitude from Google Maps (right-click → copy coordinates) | `41.8827` |
+| `lng` | Longitude — must be negative for Chicago | `-87.6233` |
+
+Aim for **30-40 tasks** covering a mix of categories and vibes.
+
+**Steps to import:**
+1. Create the CSV at `Gogo - chicago_template_tasks.csv` in the project root (same format as Nashville)
+2. Add Chicago to the DB — run once in `uv run python`:
+```python
+from app.db.session import SessionLocal
+from app.models import City
+db = SessionLocal()
+db.add(City(name="Chicago", state="IL", country="US", lat=41.8781, lng=-87.6298))
+db.commit()
+```
+3. Duplicate `scripts/import_nashville_csv.py` → `scripts/import_chicago_csv.py`, change `CSV_PATH` and `City.name == "Chicago"`
+4. Run: `uv run python scripts/import_chicago_csv.py`
+5. Run: `uv run python scripts/assign_xp.py` to auto-calculate XP
+6. Test by generating a route and selecting Chicago
 
 ## Key Files
-- `app/models/checkin.py` (CheckIn model already exists)
-- New: `app/api/routes/checkins.py`
-- New: `app/services/checkin_service.py`
-
-## Setup
-```bash
-git clone https://github.com/cwreller/Gogo-City.git
-cd Gogo-City
-docker-compose up -d
-uv sync
-cp .env.example .env
-# OPENAI_API_KEY is optional for your tasks - check-ins/XP don't use AI
-# Leave it blank or ask Lucas for the key if you want to test route generation
-uv run alembic upgrade head
-uv run uvicorn app.main:app --reload
-```
-
-## How Check-ins Work
-- A `CheckIn` is tied to a specific `InstanceTask` (not a template task)
-- Each instance task can only have one check-in (enforced by unique constraint)
-- `verified_by` field tracks how it was verified (gps, photo, both)
-- The `CheckIn` model is in `app/models/checkin.py`
-
-## GPS Verification Reference
-```python
-from math import radians, sin, cos, sqrt, atan2
-
-def haversine_distance(lat1, lng1, lat2, lng2):
-    """Distance in meters between two lat/lng points."""
-    R = 6371000  # Earth radius in meters
-    dlat = radians(lat2 - lat1)
-    dlng = radians(lng2 - lng1)
-    a = sin(dlat/2)**2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlng/2)**2
-    return R * 2 * atan2(sqrt(a), sqrt(1-a))
-```
+- `app/api/routes/auth.py` — add `PATCH /me` here
+- `app/schemas/auth.py` — add `UpdateMeRequest` here
+- `app/models/user.py` — `display_name` field already exists
+- `frontend/src/pages/ProfilePage.tsx` — edit UI goes here
+- `frontend/src/pages/LeaderboardPage.tsx` — polish goes here

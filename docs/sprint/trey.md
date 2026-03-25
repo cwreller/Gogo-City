@@ -28,6 +28,30 @@
 - [x] Build PATCH `/api/templates/{id}` - let author toggle `is_public` on their templates
 - [x] Add filtering/search to public templates (by city, vibe tags)
 
+## Up Next
+
+### Route Sharing UI
+The sharing backend is done — now wire it to the frontend.
+
+- Add a "Share" button on `RoutePage.tsx` that copies the share code to clipboard
+- Add a page or modal at `/import/:shareCode` that shows the route preview and an "Import to My Routes" button
+- API calls already exist in `frontend/src/api/` — just need the UI
+
+### Delete / Archive Routes on Home Page
+The `DELETE /api/instances/{id}` and `PATCH /api/instances/{id}` endpoints exist. Add the UI:
+
+- Long press or swipe on a route card in `HomePage.tsx` to reveal Archive / Delete options
+- Confirm before deleting
+- Refresh the list after action
+
+### Cleanup — Remove Demo Files
+Before the presentation, delete:
+- `scripts/demo.py`
+- `scripts/seed_test_data.py`
+- `inspection/db-viewer.html`
+
+Then remove the "Temp Files" section from `README.md`.
+
 ## Key Files
 - `app/api/routes/instances.py`
 - `app/api/routes/sharing.py`
