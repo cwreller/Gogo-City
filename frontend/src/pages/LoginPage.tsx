@@ -1,7 +1,21 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { login } from '../api/auth';
+import { login, googleLogin } from '../api/auth';
+
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          initialize: (config: Record<string, unknown>) => void;
+          renderButton: (element: HTMLElement, config: Record<string, unknown>) => void;
+        };
+      };
+    };
+  }
+}
+
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -9,6 +23,38 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const auth = useAuth();
   const navigate = useNavigate();
+  const googleBtnRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    if (!clientId || !window.google) return;
+
+    window.google.accounts.id.initialize({
+      client_id: clientId,
+      callback: async (response: { credential: string }) => {
+        setError('');
+        setLoading(true);
+        try {
+          const { access_token } = await googleLogin(response.credential);
+          auth.login(access_token);
+          navigate('/');
+        } catch (err: any) {
+          setError(err.response?.data?.detail || 'Google sign-in failed');
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
+
+    if (googleBtnRef.current) {
+      window.google.accounts.id.renderButton(googleBtnRef.current, {
+        theme: 'outline',
+        size: 'large',
+        width: googleBtnRef.current.offsetWidth,
+        text: 'signin_with',
+      });
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,6 +96,14 @@ export default function LoginPage() {
           {loading ? 'Loading...' : 'Sign In'}
         </button>
       </form>
+
+      <div className="w-full flex items-center gap-3 my-5">
+        <div className="flex-1 border-t border-[var(--color-border)]" />
+        <span className="text-[9px] text-[var(--color-text-muted)] uppercase tracking-widest">or</span>
+        <div className="flex-1 border-t border-[var(--color-border)]" />
+      </div>
+
+      <div ref={googleBtnRef} className="w-full" />
 
       <p className="mt-6 text-sm font-sans text-[var(--color-text-muted)]">
         New here?{' '}

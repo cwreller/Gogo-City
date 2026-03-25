@@ -14,6 +14,10 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class GoogleLoginRequest(BaseModel):
+    id_token: str
+
+
 class UpdateMeRequest(BaseModel):
     display_name: str | None = None
 

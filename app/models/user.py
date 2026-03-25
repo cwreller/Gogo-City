@@ -43,7 +43,8 @@ class User(Base, UUIDMixin, TimestampMixin):
     username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     display_name: Mapped[Optional[str]] = mapped_column(String(100))
     avatar_url: Mapped[Optional[str]] = mapped_column(String)
-    password_hash: Mapped[str] = mapped_column(String, nullable=False)
+    password_hash: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    google_id: Mapped[Optional[str]] = mapped_column(String, unique=True)
     
     # XP and leveling
     total_xp: Mapped[int] = mapped_column(Integer, server_default="0", nullable=False)

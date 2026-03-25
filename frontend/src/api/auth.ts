@@ -12,6 +12,11 @@ export async function login(email: string, password: string) {
   return data as { access_token: string };
 }
 
+export async function googleLogin(idToken: string) {
+  const { data } = await api.post('/auth/google', { id_token: idToken });
+  return data as { access_token: string };
+}
+
 export async function updateMe(displayName: string) {
   const { data } = await api.patch('/auth/me', { display_name: displayName });
   return data as { access_token: string };

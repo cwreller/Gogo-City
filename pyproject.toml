@@ -19,6 +19,8 @@ dependencies = [
     "passlib[bcrypt]>=1.7.4",
     "python-multipart>=0.0.9",
     "cloudinary>=1.44.1",
+    "google-auth>=2.49.1",
+    "requests>=2.33.0",
 ]
 
 [project.optional-dependencies]
