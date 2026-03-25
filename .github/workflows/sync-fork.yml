@@ -11,5 +11,6 @@ jobs:
         with:
           fetch-depth: 0
       - run: |
-          git remote add fork https://x-access-token:${{ secrets.FORK_PAT }}@github.com/slaterlucas/GoGoCity.git
+          git remote add fork https://x-access-token:${{ secrets.FORK_PAT }}@github.com/slaterlucas/Gogo-City.git
           git push fork main --force
+
