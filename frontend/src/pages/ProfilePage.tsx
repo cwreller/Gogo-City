@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { listInstances, InstanceListItem } from '../api/instances';
 import { getLeaderboard } from '../api/checkins';
+import { getAchievements, Achievement } from '../api/achievements';
 import { updateMe } from '../api/auth';
 import XPBar from '../components/XPBar';
-import { LogOut, Route, CheckCircle, MapPin, Pencil, PlusCircle, Shield, Database } from 'lucide-react';
+import { LogOut, Route, CheckCircle, MapPin, Pencil, PlusCircle, Shield, Database, Trophy } from 'lucide-react';
 
 export default function ProfilePage() {
   const auth = useAuth();
@@ -16,6 +17,9 @@ export default function ProfilePage() {
   const [xp, setXP] = useState(0);
   const [level, setLevel] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [unlockedCount, setUnlockedCount] = useState(0);
+  const [totalBadges, setTotalBadges] = useState(0);
   const [editing, setEditing] = useState(false);
   const [editValue, setEditValue] = useState('');
   const [saving, setSaving] = useState(false);
@@ -58,8 +62,15 @@ export default function ProfilePage() {
 
     async function load() {
       try {
-        const [inst, lb] = await Promise.all([listInstances(), getLeaderboard(100)]);
+        const [inst, lb, achData] = await Promise.all([
+          listInstances(),
+          getLeaderboard(100),
+          getAchievements(),
+        ]);
         setInstances(inst);
+        setAchievements(achData.achievements);
+        setUnlockedCount(achData.unlocked);
+        setTotalBadges(achData.total);
         if (token) {
           const payload = JSON.parse(atob(token.split('.')[1]));
           const uid = payload.sub;
@@ -171,6 +182,48 @@ export default function ProfilePage() {
           <p className="text-[7px] text-[var(--color-text-muted)] uppercase tracking-widest">Tasks</p>
         </div>
       </div>
+
+      {achievements.length > 0 && (
+        <section className="mt-6">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-1.5">
+              <Trophy size={14} className="text-[var(--color-primary)]" />
+              <h2 className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-widest">
+                Achievements
+              </h2>
+            </div>
+            <span className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-widest">
+              {unlockedCount}/{totalBadges}
+            </span>
+          </div>
+          <div className="grid grid-cols-4 gap-2">
+            {achievements.map((ach) => (
+              <div
+                key={ach.id}
+                className={`card-retro p-2 text-center transition-all ${
+                  ach.unlocked
+                    ? 'bg-white'
+                    : 'bg-[var(--color-surface-light)] opacity-40 grayscale'
+                }`}
+                title={`${ach.name}: ${ach.description} (${ach.progress}/${ach.threshold})`}
+              >
+                <div className="text-xl mb-0.5">{ach.icon}</div>
+                <p className="text-[7px] font-bold uppercase tracking-wider leading-tight truncate">
+                  {ach.name}
+                </p>
+                {!ach.unlocked && (
+                  <div className="mt-1 progress-retro h-1">
+                    <div
+                      className="progress-retro-fill h-full"
+                      style={{ width: `${Math.round((ach.progress / ach.threshold) * 100)}%` }}
+                    />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {instances.length > 0 && (
         <section className="mt-6">

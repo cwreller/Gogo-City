@@ -86,6 +86,7 @@ export default function HomePage() {
 
   const renderCard = (inst: InstanceListItem, variant: 'active' | 'completed') => {
     const isTarget = actionTarget === inst.id;
+    const pct = inst.progress.percent;
 
     return (
       <div key={inst.id} className="relative">
@@ -98,33 +99,42 @@ export default function HomePage() {
           onTouchEnd={cancelLongPress}
           onTouchCancel={cancelLongPress}
           onContextMenu={(e) => { e.preventDefault(); setActionTarget(inst.id); }}
-          className={`w-full card-retro ${variant === 'active' ? 'p-4' : 'p-3 opacity-70'} text-left hover:bg-[var(--color-surface-light)] transition-colors select-none`}
+          className={`w-full card-retro ${variant === 'active' ? 'p-4' : 'p-3.5'} text-left transition-all select-none group`}
         >
-          <div className="flex justify-between items-center">
-            <h3 className="font-bold text-sm">{inst.title}</h3>
+          <div className="flex justify-between items-start">
+            <div className="flex-1 min-w-0">
+              <h3 className="font-bold text-sm font-sans truncate">{inst.title}</h3>
+              {variant === 'active' && (
+                <p className="text-[10px] text-[var(--color-text-muted)] font-sans mt-0.5">
+                  {inst.progress.completed_tasks} of {inst.progress.total_tasks} tasks
+                </p>
+              )}
+            </div>
             {variant === 'active' ? (
-              <ChevronRight size={18} className="text-[var(--color-text-muted)]" />
+              <ChevronRight size={18} className="text-[var(--color-text-muted)] group-hover:text-[var(--color-primary)] group-hover:translate-x-0.5 transition-all shrink-0 mt-0.5" />
             ) : (
-              <span className="text-[9px] text-[var(--color-success)] uppercase">Done</span>
+              <span className="text-[9px] text-white bg-[var(--color-success)] px-2 py-0.5 rounded-full font-sans font-medium uppercase shrink-0">
+                Done
+              </span>
             )}
           </div>
           {variant === 'active' && (
-            <div className="mt-2 flex items-center gap-3">
-              <div className="flex-1 progress-retro h-2">
-                <div className="progress-retro-fill h-full" style={{ width: `${inst.progress.percent}%` }} />
+            <div className="mt-3 flex items-center gap-3">
+              <div className="flex-1 progress-retro h-2.5">
+                <div className="progress-retro-fill h-full" style={{ width: `${pct}%` }} />
               </div>
-              <span className="text-[9px] text-[var(--color-text-muted)]">
-                {inst.progress.completed_tasks}/{inst.progress.total_tasks}
+              <span className="text-[10px] font-sans font-semibold text-[var(--color-primary)] tabular-nums min-w-[32px] text-right">
+                {Math.round(pct)}%
               </span>
             </div>
           )}
         </button>
 
         {isTarget && (
-          <div className="absolute right-0 top-0 h-full flex items-center gap-1 pr-2 z-10">
+          <div className="absolute right-0 top-0 h-full flex items-center gap-1.5 pr-3 z-10">
             <button
               onClick={() => setConfirmDelete(inst.id)}
-              className="p-2 bg-[var(--color-error)] text-white border-2 border-[var(--color-text)]"
+              className="p-2.5 bg-[var(--color-error)] text-white rounded-xl shadow-lg"
               title="Delete"
             >
               <Trash2 size={14} />
@@ -132,7 +142,7 @@ export default function HomePage() {
             {inst.status === 'active' && (
               <button
                 onClick={() => handleArchive(inst.id)}
-                className="p-2 bg-[var(--color-text-muted)] text-white border-2 border-[var(--color-text)]"
+                className="p-2.5 bg-gray-500 text-white rounded-xl shadow-lg"
                 title="Archive"
               >
                 <Archive size={14} />
@@ -140,7 +150,7 @@ export default function HomePage() {
             )}
             <button
               onClick={() => setActionTarget(null)}
-              className="p-2 bg-white border-2 border-[var(--color-border)]"
+              className="p-2.5 bg-white border border-[var(--color-border)] rounded-xl shadow-lg"
               title="Cancel"
             >
               <X size={14} />
@@ -220,22 +230,23 @@ export default function HomePage() {
       </div>
 
       {confirmDelete && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center">
-          <div className="w-full max-w-[430px] bg-[var(--color-bg)] border-t-2 border-[var(--color-border)] p-6">
-            <h3 className="text-sm font-bold mb-2">Delete Quest?</h3>
-            <p className="font-sans text-xs text-[var(--color-text-muted)] mb-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end justify-center">
+          <div className="w-full max-w-[430px] bg-white rounded-t-3xl p-6 pb-8 shadow-2xl">
+            <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
+            <h3 className="text-base font-bold font-sans mb-2">Delete Quest?</h3>
+            <p className="font-sans text-sm text-[var(--color-text-muted)] mb-6 leading-relaxed">
               This will permanently remove the quest and all progress. This cannot be undone.
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setConfirmDelete(null)}
-                className="flex-1 py-3 text-xs uppercase tracking-widest border-2 border-[var(--color-border)] bg-white btn-retro"
+                className="flex-1 py-3.5 text-xs uppercase tracking-widest border border-[var(--color-border)] bg-white rounded-xl font-sans font-semibold active:scale-[0.98] transition-transform"
               >
                 Cancel
               </button>
               <button
                 onClick={() => handleDelete(confirmDelete)}
-                className="flex-1 py-3 text-xs uppercase tracking-widest bg-[var(--color-error)] text-white btn-retro"
+                className="flex-1 py-3.5 text-xs uppercase tracking-widest bg-[var(--color-error)] text-white rounded-xl font-sans font-semibold shadow-lg shadow-red-500/20 active:scale-[0.98] transition-transform"
               >
                 Delete
               </button>
