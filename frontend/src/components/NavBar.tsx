@@ -15,8 +15,8 @@ export default function NavBar() {
   const activeIndex = tabs.findIndex((t) => t.path === location.pathname);
 
   return (
-    <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-50 px-4 pb-4 pt-2 pointer-events-none">
-      <nav className="pointer-events-auto navbar-glass rounded-2xl border border-white/30 px-2 py-1.5">
+    <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-50 pointer-events-none">
+      <nav className="pointer-events-auto navbar-glass border-t border-white/30 px-2 py-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))]">
         <div className="relative flex justify-around">
           {activeIndex >= 0 && (
             <div
