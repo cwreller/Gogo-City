@@ -5,7 +5,7 @@ import { listInstances, InstanceListItem } from '../api/instances';
 import { getLeaderboard } from '../api/checkins';
 import { updateMe } from '../api/auth';
 import XPBar from '../components/XPBar';
-import { LogOut, Route, CheckCircle, MapPin, Pencil, PlusCircle, Shield } from 'lucide-react';
+import { LogOut, Route, CheckCircle, MapPin, Pencil, PlusCircle, Shield, Database } from 'lucide-react';
 
 export default function ProfilePage() {
   const auth = useAuth();
@@ -135,13 +135,22 @@ export default function ProfilePage() {
           Suggest Task
         </button>
         {auth.isAdmin && (
-          <button
-            onClick={() => navigate('/admin/submissions')}
-            className="flex-1 py-3 bg-[var(--color-primary)] text-white text-xs uppercase tracking-widest btn-retro flex items-center justify-center gap-2"
-          >
-            <Shield size={16} />
-            Admin Review
-          </button>
+          <>
+            <button
+              onClick={() => navigate('/admin/submissions')}
+              className="flex-1 py-3 bg-[var(--color-primary)] text-white text-xs uppercase tracking-widest btn-retro flex items-center justify-center gap-2"
+            >
+              <Shield size={16} />
+              Review
+            </button>
+            <button
+              onClick={() => navigate('/admin/tasks')}
+              className="flex-1 py-3 bg-[var(--color-primary)] text-white text-xs uppercase tracking-widest btn-retro flex items-center justify-center gap-2"
+            >
+              <Database size={16} />
+              Tasks DB
+            </button>
+          </>
         )}
       </div>
 

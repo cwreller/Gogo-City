@@ -11,6 +11,7 @@ import ProfilePage from './pages/ProfilePage';
 import ImportPage from './pages/ImportPage';
 import SubmitTaskPage from './pages/SubmitTaskPage';
 import AdminReviewPage from './pages/AdminReviewPage';
+import AdminTasksPage from './pages/AdminTasksPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
@@ -42,6 +43,7 @@ function AppRoutes() {
       <Route path="/import/:shareCode" element={<ProtectedRoute><AppLayout><ImportPage /></AppLayout></ProtectedRoute>} />
       <Route path="/submit-task" element={<ProtectedRoute><AppLayout><SubmitTaskPage /></AppLayout></ProtectedRoute>} />
       <Route path="/admin/submissions" element={<ProtectedRoute><AppLayout><AdminReviewPage /></AppLayout></ProtectedRoute>} />
+      <Route path="/admin/tasks" element={<ProtectedRoute><AppLayout><AdminTasksPage /></AppLayout></ProtectedRoute>} />
     </Routes>
   );
 }
