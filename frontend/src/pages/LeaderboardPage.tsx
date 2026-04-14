@@ -14,33 +14,32 @@ function Building({ rank, entry, isMe }: { rank: number; entry: LeaderboardEntry
 
   return (
     <div className={`flex flex-col items-center w-[100px] ${rank === 1 ? 'order-2' : rank === 2 ? 'order-1' : 'order-3'}`}>
-      <p className={`text-[10px] font-bold text-center truncate w-full mb-1 ${isMe ? 'text-[var(--color-primary)]' : ''}`}>
-        {entry.display_name}
-      </p>
-      <div className="flex items-center gap-0.5 mb-2">
-        <Zap size={9} className="text-[var(--color-primary)]" />
-        <span className="text-[9px] font-bold text-[var(--color-primary)] tabular-nums">{entry.total_xp} XP</span>
+      {/* label area -- fixed height so all three columns align */}
+      <div className="flex flex-col items-center justify-end h-10">
+        <p className={`text-[10px] font-bold text-center truncate w-full ${isMe ? 'text-[var(--color-primary)]' : ''}`}>
+          {entry.display_name}
+        </p>
+        <div className="flex items-center gap-0.5">
+          <Zap size={9} className="text-[var(--color-primary)]" />
+          <span className="text-[9px] font-bold text-[var(--color-primary)] tabular-nums">{entry.total_xp} XP</span>
+        </div>
       </div>
 
-      {/* building */}
-      <div className="relative w-[90px]">
-        {/* antenna on 1st place */}
+      {/* building -- mt-auto not needed since parent is items-end */}
+      <div className="relative w-[90px] mt-2">
         {rank === 1 && (
-          <div className="flex justify-center mb-0">
+          <div className="flex justify-center">
             <div className="w-[2px] h-3 bg-[#2d2d2d]" />
           </div>
         )}
         <div className={`${cfg.height} ${cfg.color} w-full border-2 border-[var(--color-text)] relative`}
           style={{ boxShadow: '3px 3px 0px var(--color-text)' }}>
-          {/* windows grid */}
           <div className="absolute inset-1.5 grid grid-cols-3 gap-1 content-start">
             {Array.from({ length: rows * 3 }).map((_, i) => (
               <div key={i} className={`${cfg.windowColor} opacity-70 h-2`} />
             ))}
           </div>
-          {/* door */}
           <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-5 bg-[var(--color-surface-light)] border-t-2 border-x-2 border-[var(--color-text)]" />
-          {/* rank number */}
           <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-6 h-6 bg-white border-2 border-[var(--color-text)] flex items-center justify-center"
             style={{ boxShadow: '2px 2px 0px var(--color-text)' }}>
             <span className="text-[10px] font-bold">{rank}</span>
