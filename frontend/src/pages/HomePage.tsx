@@ -157,9 +157,8 @@ export default function HomePage() {
           <span className="bg-gradient-to-r from-[#e8832a] to-[#e55a2f] bg-clip-text text-transparent">GoGo</span>
           <span className="text-[#2d2d2d]">City</span>
         </h1>
-      <p className="text-[9px] text-[var(--color-text-muted)] mb-5 uppercase tracking-[0.2em]">Explore. Complete. Level up.</p>
 
-      <XPBar xp={userXP} level={userLevel} />
+      <XPBar xp={userXP} level={userLevel} expandable />
 
       <button
         onClick={() => navigate('/generate')}
