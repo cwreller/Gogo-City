@@ -72,45 +72,78 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-white">
-      <img src="/logo.png" alt="GoGo City" className="w-40 mb-2" style={{ marginLeft: '1px' }} />
-      <p className="text-[10px] text-[var(--color-text-muted)] mb-8 uppercase tracking-widest">Explore. Complete. Level up.</p>
+    <div className="min-h-screen flex flex-col items-center justify-center px-6 login-bg relative overflow-hidden">
+      <div className="login-blob login-blob-1" />
+      <div className="login-blob login-blob-2" />
 
-      <form onSubmit={handleSubmit} className="w-full space-y-4">
-        <div>
-          <label className="text-[10px] text-[var(--color-text-muted)] block mb-1 uppercase tracking-widest">Email</label>
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="w-full px-4 py-3 text-sm" />
-        </div>
-        <div>
-          <label className="text-[10px] text-[var(--color-text-muted)] block mb-1 uppercase tracking-widest">Password</label>
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className="w-full px-4 py-3 text-sm" />
+      <div className="relative z-10 w-full max-w-sm">
+        <div className="text-center mb-8">
+          <img src="/logo.png" alt="GoGo City" className="w-40 mx-auto mb-3" />
+          <p className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-[0.25em] font-sans">
+            Explore. Complete. Level up.
+          </p>
         </div>
 
-        {error && <p className="text-[var(--color-error)] text-xs">{error}</p>}
+        <div className="login-card rounded-2xl p-6 space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="text-[10px] text-[var(--color-text-muted)] block mb-1.5 uppercase tracking-widest font-sans font-medium">
+                Email
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full px-4 py-3 text-sm font-sans rounded-lg"
+                placeholder="you@example.com"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] text-[var(--color-text-muted)] block mb-1.5 uppercase tracking-widest font-sans font-medium">
+                Password
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full px-4 py-3 text-sm font-sans rounded-lg"
+                placeholder="••••••••"
+              />
+            </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full py-3 bg-[var(--color-primary)] text-white text-sm uppercase tracking-widest btn-retro disabled:opacity-50"
-        >
-          {loading ? 'Loading...' : 'Sign In'}
-        </button>
-      </form>
+            {error && (
+              <div className="flex items-center gap-2 text-[var(--color-error)] text-xs font-sans bg-red-50 px-3 py-2 rounded-lg border border-red-100">
+                <span>{error}</span>
+              </div>
+            )}
 
-      <div className="w-full flex items-center gap-3 my-5">
-        <div className="flex-1 border-t border-[var(--color-border)]" />
-        <span className="text-[9px] text-[var(--color-text-muted)] uppercase tracking-widest">or</span>
-        <div className="flex-1 border-t border-[var(--color-border)]" />
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3.5 bg-gradient-to-r from-[#e8832a] to-[#e55a2f] text-white text-sm uppercase tracking-widest font-sans font-semibold rounded-xl shadow-lg shadow-orange-500/20 hover:shadow-orange-500/30 transition-all duration-200 active:scale-[0.98] disabled:opacity-50"
+            >
+              {loading ? 'Signing in...' : 'Sign In'}
+            </button>
+          </form>
+
+          <div className="flex items-center gap-3">
+            <div className="flex-1 border-t border-[var(--color-border)]" />
+            <span className="text-[9px] text-[var(--color-text-muted)] uppercase tracking-widest font-sans">or</span>
+            <div className="flex-1 border-t border-[var(--color-border)]" />
+          </div>
+
+          <div ref={googleBtnRef} className="w-full" />
+        </div>
+
+        <p className="mt-6 text-center text-sm font-sans text-[var(--color-text-muted)]">
+          New here?{' '}
+          <Link to="/register" className="text-[var(--color-primary)] font-semibold hover:underline">
+            Create account
+          </Link>
+        </p>
       </div>
-
-      <div ref={googleBtnRef} className="w-full" />
-
-      <p className="mt-6 text-sm font-sans text-[var(--color-text-muted)]">
-        New here?{' '}
-        <Link to="/register" className="text-[var(--color-primary)] font-semibold hover:underline">
-          Create account
-        </Link>
-      </p>
     </div>
   );
 }
