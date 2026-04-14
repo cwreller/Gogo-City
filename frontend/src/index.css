@@ -176,6 +176,23 @@ button, a {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Home hero banner */
+.hero-banner {
+  background: linear-gradient(160deg, #fff8f3 0%, #fff 50%, #fef5f0 100%);
+  border-bottom: 1px solid rgba(229, 57, 53, 0.06);
+  position: relative;
+}
+
+.hero-banner::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 5%;
+  right: 5%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(232, 131, 42, 0.15), transparent);
+}
+
 /* Login page */
 .login-bg {
   background: linear-gradient(145deg, #fff8f5 0%, #fff 40%, #f5f0ff 70%, #fff5f0 100%);
