@@ -73,8 +73,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-white">
-      <img src="/logo.png" alt="GoGo City" className="w-40 mb-2" style={{ marginLeft: '1px' }} />
-      <p className="text-[10px] text-[var(--color-text-muted)] mb-8 uppercase tracking-widest">Explore. Complete. Level up.</p>
+      <img src="/logo.png" alt="GoGo City" className="w-40 mb-8" style={{ marginLeft: '1px' }} />
 
       <form onSubmit={handleSubmit} className="w-full space-y-4">
         <div>
