@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { listInstances, deleteInstance, updateInstanceStatus, InstanceListItem } from '../api/instances';
 import { getLeaderboard } from '../api/checkins';
 import XPBar from '../components/XPBar';
-import { Compass, ChevronRight, Zap, Archive, Trash2, X } from 'lucide-react';
+import { Compass, ChevronRight, ChevronDown, Zap, Archive, Trash2, X } from 'lucide-react';
 
 const LONG_PRESS_MS = 500;
 
@@ -14,6 +14,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [actionTarget, setActionTarget] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const navigate = useNavigate();
 
@@ -152,14 +153,14 @@ export default function HomePage() {
   };
 
   return (
-    <div className="px-5 pt-8 pb-24 page-enter">
+    <div className="px-5 pt-8 pb-28 page-enter">
       <h1 className="text-2xl mb-1 tracking-tight" style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800 }}>
           <span className="bg-gradient-to-r from-[#e8832a] to-[#e55a2f] bg-clip-text text-transparent">GoGo</span>
           <span className="text-[#2d2d2d]">City</span>
         </h1>
       <p className="text-[9px] text-[var(--color-text-muted)] mb-5 uppercase tracking-[0.2em]">Explore. Complete. Level up.</p>
 
-      <XPBar xp={userXP} level={userLevel} />
+      <XPBar xp={userXP} level={userLevel} expandable />
 
       <button
         onClick={() => navigate('/generate')}
@@ -184,13 +185,24 @@ export default function HomePage() {
 
           {completed.length > 0 && (
             <section className="mt-7">
-              <h2 className="text-xs mb-3 uppercase tracking-[0.15em] text-[var(--color-success)] flex items-center gap-1">
-                <Zap size={14} />
-                Completed
-              </h2>
-              <div className="space-y-2">
-                {completed.map((inst) => renderCard(inst, 'completed'))}
-              </div>
+              <button
+                onClick={() => setHistoryOpen(!historyOpen)}
+                className="flex items-center gap-1 mb-3 w-full text-left"
+              >
+                <Zap size={14} className="text-[var(--color-success)]" />
+                <h2 className="text-xs uppercase tracking-[0.15em] text-[var(--color-success)]">
+                  Completed ({completed.length})
+                </h2>
+                <ChevronDown
+                  size={14}
+                  className={`text-[var(--color-success)] ml-auto transition-transform duration-200 ${historyOpen ? 'rotate-180' : ''}`}
+                />
+              </button>
+              {historyOpen && (
+                <div className="space-y-2">
+                  {completed.map((inst) => renderCard(inst, 'completed'))}
+                </div>
+              )}
             </section>
           )}
 
