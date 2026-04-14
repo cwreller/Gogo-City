@@ -151,14 +151,16 @@ export default function ProfilePage() {
           <>
             <button
               onClick={() => navigate('/admin/submissions')}
-              className="flex-1 py-3 bg-[var(--color-primary)] text-white text-xs uppercase tracking-widest card-retro border-none flex items-center justify-center gap-2"
+              className="flex-1 py-3 text-white text-xs uppercase tracking-widest rounded-lg flex items-center justify-center gap-2 transition-colors hover:opacity-90"
+              style={{ background: 'var(--color-primary)' }}
             >
               <Shield size={16} />
               Review
             </button>
             <button
               onClick={() => navigate('/admin/tasks')}
-              className="flex-1 py-3 bg-[var(--color-primary)] text-white text-xs uppercase tracking-widest card-retro border-none flex items-center justify-center gap-2"
+              className="flex-1 py-3 text-white text-xs uppercase tracking-widest rounded-lg flex items-center justify-center gap-2 transition-colors hover:opacity-90"
+              style={{ background: 'var(--color-primary)' }}
             >
               <Database size={16} />
               Tasks DB
