@@ -89,15 +89,14 @@ body .font-sans {
 /* Cards */
 .card-retro {
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 14px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.03), 0 1px 2px rgba(0,0,0,0.02);
-  transition: box-shadow 0.25s ease, transform 0.15s ease, border-color 0.25s ease;
+  border: 2px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
 }
 
 .card-retro:hover {
-  box-shadow: 0 6px 20px rgba(0,0,0,0.06), 0 2px 4px rgba(0,0,0,0.03);
-  border-color: rgba(0,0,0,0.08);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
 }
 
 .card-retro:active {
@@ -107,15 +106,15 @@ body .font-sans {
 /* Progress bar */
 .progress-retro {
   background: var(--color-surface-light);
-  border: 1px solid var(--color-border);
-  border-radius: 99px;
+  border: 2px solid var(--color-border);
+  border-radius: 4px;
   overflow: hidden;
 }
 
 .progress-retro-fill {
-  background: linear-gradient(90deg, #e8832a, #e55a2f);
-  border-radius: 99px;
-  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  background: linear-gradient(90deg, #e53935, #ff6659);
+  border-radius: 2px;
+  transition: width 0.6s ease;
   position: relative;
 }
 
@@ -123,7 +122,7 @@ body .font-sans {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.35) 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%);
   background-size: 200% 100%;
   animation: shimmer 2.5s infinite linear;
 }
@@ -175,62 +174,6 @@ input:focus, select:focus {
 /* Tap feedback on interactive elements */
 button, a {
   -webkit-tap-highlight-color: transparent;
-}
-
-/* Home hero banner */
-.hero-banner {
-  background: linear-gradient(160deg, #fff8f3 0%, #fff 50%, #fef5f0 100%);
-  border-bottom: 1px solid rgba(229, 57, 53, 0.06);
-  position: relative;
-}
-
-.hero-banner::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 5%;
-  right: 5%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(232, 131, 42, 0.15), transparent);
-}
-
-/* Login page */
-.login-bg {
-  background: linear-gradient(145deg, #fff8f5 0%, #fff 40%, #f5f0ff 70%, #fff5f0 100%);
-}
-
-.login-blob {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.5;
-  pointer-events: none;
-}
-
-.login-blob-1 {
-  width: 300px;
-  height: 300px;
-  background: radial-gradient(circle, rgba(232, 131, 42, 0.25), transparent 70%);
-  top: -60px;
-  right: -80px;
-}
-
-.login-blob-2 {
-  width: 250px;
-  height: 250px;
-  background: radial-gradient(circle, rgba(229, 57, 53, 0.15), transparent 70%);
-  bottom: 10%;
-  left: -60px;
-}
-
-.login-card {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.06),
-    0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 /* Smooth page transitions */
