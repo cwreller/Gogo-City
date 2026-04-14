@@ -86,7 +86,6 @@ export default function HomePage() {
 
   const renderCard = (inst: InstanceListItem, variant: 'active' | 'completed') => {
     const isTarget = actionTarget === inst.id;
-    const pct = inst.progress.percent;
 
     return (
       <div key={inst.id} className="relative">
@@ -99,42 +98,33 @@ export default function HomePage() {
           onTouchEnd={cancelLongPress}
           onTouchCancel={cancelLongPress}
           onContextMenu={(e) => { e.preventDefault(); setActionTarget(inst.id); }}
-          className={`w-full card-retro ${variant === 'active' ? 'p-4' : 'p-3.5'} text-left transition-all select-none group`}
+          className={`w-full card-retro ${variant === 'active' ? 'p-4' : 'p-3 opacity-70'} text-left hover:bg-[var(--color-surface-light)] transition-colors select-none`}
         >
-          <div className="flex justify-between items-start">
-            <div className="flex-1 min-w-0">
-              <h3 className="font-bold text-sm font-sans truncate">{inst.title}</h3>
-              {variant === 'active' && (
-                <p className="text-[10px] text-[var(--color-text-muted)] font-sans mt-0.5">
-                  {inst.progress.completed_tasks} of {inst.progress.total_tasks} tasks
-                </p>
-              )}
-            </div>
+          <div className="flex justify-between items-center">
+            <h3 className="font-bold text-sm">{inst.title}</h3>
             {variant === 'active' ? (
-              <ChevronRight size={18} className="text-[var(--color-text-muted)] group-hover:text-[var(--color-primary)] group-hover:translate-x-0.5 transition-all shrink-0 mt-0.5" />
+              <ChevronRight size={18} className="text-[var(--color-text-muted)]" />
             ) : (
-              <span className="text-[9px] text-white bg-[var(--color-success)] px-2 py-0.5 rounded-full font-sans font-medium uppercase shrink-0">
-                Done
-              </span>
+              <span className="text-[9px] text-[var(--color-success)] uppercase">Done</span>
             )}
           </div>
           {variant === 'active' && (
-            <div className="mt-3 flex items-center gap-3">
-              <div className="flex-1 progress-retro h-2.5">
-                <div className="progress-retro-fill h-full" style={{ width: `${pct}%` }} />
+            <div className="mt-2 flex items-center gap-3">
+              <div className="flex-1 progress-retro h-2">
+                <div className="progress-retro-fill h-full" style={{ width: `${inst.progress.percent}%` }} />
               </div>
-              <span className="text-[10px] font-sans font-semibold text-[var(--color-primary)] tabular-nums min-w-[32px] text-right">
-                {Math.round(pct)}%
+              <span className="text-[9px] text-[var(--color-text-muted)]">
+                {inst.progress.completed_tasks}/{inst.progress.total_tasks}
               </span>
             </div>
           )}
         </button>
 
         {isTarget && (
-          <div className="absolute right-0 top-0 h-full flex items-center gap-1.5 pr-3 z-10">
+          <div className="absolute right-0 top-0 h-full flex items-center gap-1 pr-2 z-10">
             <button
               onClick={() => setConfirmDelete(inst.id)}
-              className="p-2.5 bg-[var(--color-error)] text-white rounded-xl shadow-lg"
+              className="p-2 bg-[var(--color-error)] text-white border-2 border-[var(--color-text)]"
               title="Delete"
             >
               <Trash2 size={14} />
@@ -142,7 +132,7 @@ export default function HomePage() {
             {inst.status === 'active' && (
               <button
                 onClick={() => handleArchive(inst.id)}
-                className="p-2.5 bg-gray-500 text-white rounded-xl shadow-lg"
+                className="p-2 bg-[var(--color-text-muted)] text-white border-2 border-[var(--color-text)]"
                 title="Archive"
               >
                 <Archive size={14} />
@@ -150,7 +140,7 @@ export default function HomePage() {
             )}
             <button
               onClick={() => setActionTarget(null)}
-              className="p-2.5 bg-white border border-[var(--color-border)] rounded-xl shadow-lg"
+              className="p-2 bg-white border-2 border-[var(--color-border)]"
               title="Cancel"
             >
               <X size={14} />
@@ -162,40 +152,30 @@ export default function HomePage() {
   };
 
   return (
-    <div className="pb-28 page-enter">
-      <div className="hero-banner px-5 pt-8 pb-6 mb-5">
-        <h1 className="text-3xl mb-1 tracking-tight" style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800 }}>
+    <div className="px-5 pt-8 pb-24 page-enter">
+      <h1 className="text-2xl mb-1 tracking-tight" style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 800 }}>
           <span className="bg-gradient-to-r from-[#e8832a] to-[#e55a2f] bg-clip-text text-transparent">GoGo</span>
           <span className="text-[#2d2d2d]">City</span>
         </h1>
-        <p className="text-[9px] text-[var(--color-text-muted)] mb-5 uppercase tracking-[0.25em] font-sans">
-          Explore. Complete. Level up.
-        </p>
+      <p className="text-[9px] text-[var(--color-text-muted)] mb-5 uppercase tracking-[0.2em]">Explore. Complete. Level up.</p>
 
-        <XPBar xp={userXP} level={userLevel} />
-      </div>
+      <XPBar xp={userXP} level={userLevel} />
 
-      <div className="px-5">
-        <button
-          onClick={() => navigate('/generate')}
-          className="w-full py-4 text-white text-sm uppercase tracking-widest rounded-xl font-sans font-semibold bg-gradient-to-r from-[#e8832a] to-[#e55a2f] shadow-lg shadow-orange-500/20 hover:shadow-orange-500/30 transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2"
-        >
-          <Compass size={20} />
-          New Quest
-        </button>
-      </div>
+      <button
+        onClick={() => navigate('/generate')}
+        className="w-full mt-5 py-4 text-white text-sm uppercase tracking-widest btn-retro btn-primary flex items-center justify-center gap-2"
+      >
+        <Compass size={20} />
+        New Quest
+      </button>
 
-      <div className="px-5">
       {loading ? (
-        <div className="mt-8 text-center text-xs text-[var(--color-text-muted)] uppercase tracking-widest font-sans animate-pulse">Loading...</div>
+        <div className="mt-8 text-center text-xs text-[var(--color-text-muted)] uppercase tracking-widest">Loading...</div>
       ) : (
         <>
           {active.length > 0 && (
-            <section className="mt-6">
-              <h2 className="text-[10px] mb-3 uppercase tracking-[0.2em] text-[var(--color-primary)] font-sans font-semibold flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[var(--color-primary)] animate-pulse" />
-                Active Quests
-              </h2>
+            <section className="mt-7">
+              <h2 className="text-xs mb-3 uppercase tracking-[0.15em] text-[var(--color-primary)]">Active Quests</h2>
               <div className="space-y-3">
                 {active.map((inst) => renderCard(inst, 'active'))}
               </div>
@@ -204,8 +184,8 @@ export default function HomePage() {
 
           {completed.length > 0 && (
             <section className="mt-7">
-              <h2 className="text-[10px] mb-3 uppercase tracking-[0.2em] text-[var(--color-success)] font-sans font-semibold flex items-center gap-2">
-                <Zap size={12} />
+              <h2 className="text-xs mb-3 uppercase tracking-[0.15em] text-[var(--color-success)] flex items-center gap-1">
+                <Zap size={14} />
                 Completed
               </h2>
               <div className="space-y-2">
@@ -215,38 +195,31 @@ export default function HomePage() {
           )}
 
           {instances.length === 0 && (
-            <div className="mt-14 text-center">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-orange-50 to-red-50 flex items-center justify-center">
-                <Compass size={28} className="text-[var(--color-primary)] opacity-60" />
-              </div>
-              <p className="text-sm font-sans font-semibold text-[var(--color-text)] mb-1">No quests yet</p>
-              <p className="font-sans text-xs text-[var(--color-text-muted)]">
-                Tap <span className="text-[var(--color-primary)] font-medium">New Quest</span> to start exploring!
-              </p>
+            <div className="mt-12 text-center">
+              <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-widest">No quests yet</p>
+              <p className="font-sans text-sm text-[var(--color-text-muted)] mt-2">Generate your first route to get started!</p>
             </div>
           )}
         </>
       )}
-      </div>
 
       {confirmDelete && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end justify-center">
-          <div className="w-full max-w-[430px] bg-white rounded-t-3xl p-6 pb-8 shadow-2xl">
-            <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
-            <h3 className="text-base font-bold font-sans mb-2">Delete Quest?</h3>
-            <p className="font-sans text-sm text-[var(--color-text-muted)] mb-6 leading-relaxed">
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-end justify-center">
+          <div className="w-full max-w-[430px] bg-[var(--color-bg)] border-t-2 border-[var(--color-border)] p-6">
+            <h3 className="text-sm font-bold mb-2">Delete Quest?</h3>
+            <p className="font-sans text-xs text-[var(--color-text-muted)] mb-4">
               This will permanently remove the quest and all progress. This cannot be undone.
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setConfirmDelete(null)}
-                className="flex-1 py-3.5 text-xs uppercase tracking-widest border border-[var(--color-border)] bg-white rounded-xl font-sans font-semibold active:scale-[0.98] transition-transform"
+                className="flex-1 py-3 text-xs uppercase tracking-widest border-2 border-[var(--color-border)] bg-white btn-retro"
               >
                 Cancel
               </button>
               <button
                 onClick={() => handleDelete(confirmDelete)}
-                className="flex-1 py-3.5 text-xs uppercase tracking-widest bg-[var(--color-error)] text-white rounded-xl font-sans font-semibold shadow-lg shadow-red-500/20 active:scale-[0.98] transition-transform"
+                className="flex-1 py-3 text-xs uppercase tracking-widest bg-[var(--color-error)] text-white btn-retro"
               >
                 Delete
               </button>
