@@ -142,16 +142,16 @@ export default function ProfilePage() {
       <div className="flex gap-2 mt-5 mb-4">
         <button
           onClick={() => navigate('/submit-task')}
-          className="flex-1 py-3 bg-white text-xs uppercase tracking-widest border border-[var(--color-border)] card-retro flex items-center justify-center gap-2 hover:bg-[var(--color-surface-light)] transition-colors"
+          className="flex-1 py-3 bg-white text-[9px] uppercase tracking-widest border border-[var(--color-border)] rounded-lg flex flex-col items-center justify-center gap-1 hover:bg-[var(--color-surface-light)] transition-colors"
         >
           <PlusCircle size={16} />
-          Suggest Task
+          Suggest
         </button>
         {auth.isAdmin && (
           <>
             <button
               onClick={() => navigate('/admin/submissions')}
-              className="flex-1 py-3 text-white text-xs uppercase tracking-widest rounded-lg flex items-center justify-center gap-2 transition-colors hover:opacity-90"
+              className="flex-1 py-3 text-white text-[9px] uppercase tracking-widest rounded-lg flex flex-col items-center justify-center gap-1 transition-colors hover:opacity-90"
               style={{ background: 'var(--color-primary)' }}
             >
               <Shield size={16} />
@@ -159,7 +159,7 @@ export default function ProfilePage() {
             </button>
             <button
               onClick={() => navigate('/admin/tasks')}
-              className="flex-1 py-3 text-white text-xs uppercase tracking-widest rounded-lg flex items-center justify-center gap-2 transition-colors hover:opacity-90"
+              className="flex-1 py-3 text-white text-[9px] uppercase tracking-widest rounded-lg flex flex-col items-center justify-center gap-1 transition-colors hover:opacity-90"
               style={{ background: 'var(--color-primary)' }}
             >
               <Database size={16} />
