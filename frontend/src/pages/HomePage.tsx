@@ -153,7 +153,7 @@ export default function HomePage() {
 
   return (
     <div className="px-5 pt-4 pb-28 page-enter">
-      <img src="/logo.png" alt="GoGo City" className="w-28 mb-1" />
+      <img src="/logo.png" alt="GoGo City" className="w-28 mb-1 mx-auto" />
 
       <XPBar xp={userXP} level={userLevel} expandable />
 

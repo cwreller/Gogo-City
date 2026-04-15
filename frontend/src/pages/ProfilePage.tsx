@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { listInstances, InstanceListItem } from '../api/instances';
+import { listInstances, InstanceListItem, getInstance, Instance } from '../api/instances';
 import { getLeaderboard } from '../api/checkins';
 import { getAchievements, Achievement } from '../api/achievements';
 import { updateMe } from '../api/auth';
@@ -22,8 +22,12 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [achievementsOpen, setAchievementsOpen] = useState(false);
+  const [selectedAchievement, setSelectedAchievement] = useState<Achievement | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [unlockedCount, setUnlockedCount] = useState(0);
+  const [statsView, setStatsView] = useState<'quests' | 'cleared' | 'tasks' | null>(null);
+  const [instanceDetails, setInstanceDetails] = useState<Record<string, Instance>>({});
+  const [loadingTasks, setLoadingTasks] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const startEditing = () => {
@@ -100,6 +104,30 @@ export default function ProfilePage() {
   const completedRoutes = instances.filter((i) => i.status === 'completed').length;
   const totalTasks = instances.reduce((sum, i) => sum + i.progress.total_tasks, 0);
   const completedTasks = instances.reduce((sum, i) => sum + i.progress.completed_tasks, 0);
+  const clearedInstances = instances.filter((i) => i.status === 'completed');
+
+  const handleStatsViewClick = async (view: 'quests' | 'cleared' | 'tasks') => {
+    const nextView = statsView === view ? null : view;
+    setStatsView(nextView);
+    if (nextView !== 'tasks' || loadingTasks || Object.keys(instanceDetails).length > 0 || instances.length === 0) {
+      return;
+    }
+
+    setLoadingTasks(true);
+    try {
+      const details = await Promise.all(
+        instances.map(async (inst) => {
+          const full = await getInstance(inst.id);
+          return [inst.id, full] as const;
+        })
+      );
+      setInstanceDetails(Object.fromEntries(details));
+    } catch (err) {
+      console.error('Failed to load task details', err);
+    } finally {
+      setLoadingTasks(false);
+    }
+  };
 
   if (loading) return <div className="px-4 pt-6 text-center text-xs text-[var(--color-text-muted)] uppercase tracking-widest">Loading...</div>;
 
@@ -170,27 +198,127 @@ export default function ProfilePage() {
       </div>
 
       <div className="grid grid-cols-3 gap-3">
-        <div className="card-retro p-3 text-center">
+        <button
+          type="button"
+          onClick={() => handleStatsViewClick('quests')}
+          className={`card-retro p-3 text-center transition-colors hover:bg-[var(--color-surface-light)] ${statsView === 'quests' ? 'border-[var(--color-primary)] ring-1 ring-[var(--color-primary)]' : ''}`}
+        >
           <Route size={20} className="mx-auto mb-1 text-[var(--color-primary)]" />
           <p className="text-sm font-bold">{totalRoutes}</p>
           <p className="text-[7px] text-[var(--color-text-muted)] uppercase tracking-widest">Quests</p>
-        </div>
-        <div className="card-retro p-3 text-center">
+        </button>
+        <button
+          type="button"
+          onClick={() => handleStatsViewClick('cleared')}
+          className={`card-retro p-3 text-center transition-colors hover:bg-[var(--color-surface-light)] ${statsView === 'cleared' ? 'border-[var(--color-primary)] ring-1 ring-[var(--color-primary)]' : ''}`}
+        >
           <CheckCircle size={20} className="mx-auto mb-1 text-[var(--color-success)]" />
           <p className="text-sm font-bold">{completedRoutes}</p>
           <p className="text-[7px] text-[var(--color-text-muted)] uppercase tracking-widest">Cleared</p>
-        </div>
-        <div className="card-retro p-3 text-center">
+        </button>
+        <button
+          type="button"
+          onClick={() => handleStatsViewClick('tasks')}
+          className={`card-retro p-3 text-center transition-colors hover:bg-[var(--color-surface-light)] ${statsView === 'tasks' ? 'border-[var(--color-primary)] ring-1 ring-[var(--color-primary)]' : ''}`}
+        >
           <MapPin size={20} className="mx-auto mb-1 text-[var(--color-primary)]" />
           <p className="text-sm font-bold">{completedTasks}/{totalTasks}</p>
           <p className="text-[7px] text-[var(--color-text-muted)] uppercase tracking-widest">Tasks</p>
-        </div>
+        </button>
       </div>
+
+      {statsView && (
+        <section className="mt-3">
+          <div className="card-retro p-3 space-y-2">
+            {statsView === 'quests' && (
+              <>
+                <h3 className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-widest">All Quests</h3>
+                {instances.length === 0 ? (
+                  <p className="text-xs">No quests yet.</p>
+                ) : (
+                  instances.map((inst) => (
+                    <button
+                      key={inst.id}
+                      onClick={() => navigate(`/route/${inst.id}`)}
+                      className="w-full text-left p-2 border border-[var(--color-border)] rounded hover:bg-[var(--color-surface-light)] transition-colors"
+                    >
+                      <p className="text-sm font-bold">{inst.title}</p>
+                      <p className="text-[9px] uppercase tracking-widest text-[var(--color-text-muted)] mt-0.5">
+                        {inst.progress.completed_tasks}/{inst.progress.total_tasks} tasks
+                      </p>
+                    </button>
+                  ))
+                )}
+              </>
+            )}
+            {statsView === 'cleared' && (
+              <>
+                <h3 className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-widest">Cleared Quests</h3>
+                {clearedInstances.length === 0 ? (
+                  <p className="text-xs">No cleared quests yet.</p>
+                ) : (
+                  clearedInstances.map((inst) => (
+                    <button
+                      key={inst.id}
+                      onClick={() => navigate(`/route/${inst.id}`)}
+                      className="w-full text-left p-2 border border-[var(--color-border)] rounded hover:bg-[var(--color-surface-light)] transition-colors"
+                    >
+                      <p className="text-sm font-bold">{inst.title}</p>
+                      <p className="text-[9px] uppercase tracking-widest text-[var(--color-success)] mt-0.5">
+                        Cleared
+                      </p>
+                    </button>
+                  ))
+                )}
+              </>
+            )}
+            {statsView === 'tasks' && (
+              <>
+                <h3 className="text-[10px] text-[var(--color-text-muted)] uppercase tracking-widest">Tasks by Quest</h3>
+                {loadingTasks ? (
+                  <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-widest">Loading tasks...</p>
+                ) : (
+                  instances.map((inst) => {
+                    const detail = instanceDetails[inst.id];
+                    return (
+                      <div key={inst.id} className="p-2 border border-[var(--color-border)] rounded">
+                        <p className="text-sm font-bold">{inst.title}</p>
+                        {detail?.tasks?.length ? (
+                          <ul className="mt-1 space-y-1">
+                            {detail.tasks.map((task) => (
+                              <li key={task.id} className="text-xs flex justify-between gap-2">
+                                <span className="truncate">{task.name}</span>
+                                <span className={`uppercase tracking-widest text-[8px] ${task.is_completed ? 'text-[var(--color-success)]' : 'text-[var(--color-text-muted)]'}`}>
+                                  {task.is_completed ? 'Done' : 'Todo'}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="text-xs text-[var(--color-text-muted)] mt-1">
+                            {instances.length === 0 ? 'No tasks yet.' : 'Task details unavailable.'}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
+              </>
+            )}
+          </div>
+        </section>
+      )}
 
       {achievements.length > 0 && (
         <section className="mt-6">
           <button
-            onClick={() => setAchievementsOpen(!achievementsOpen)}
+            onClick={() => {
+              const willOpen = !achievementsOpen;
+              setAchievementsOpen(willOpen);
+              if (!willOpen) {
+                setSelectedAchievement(null);
+              }
+            }}
             className="flex items-center gap-1.5 mb-3 w-full text-left"
           >
             <Award size={14} className="text-[var(--color-primary)]" />
@@ -203,28 +331,57 @@ export default function ProfilePage() {
             />
           </button>
           {achievementsOpen && (
-            <div className="grid grid-cols-4 gap-2">
-              {achievements.map((ach) => (
-                <div
-                  key={ach.id}
-                  className={`card-retro p-2 text-center ${ach.unlocked ? '' : 'opacity-30 grayscale'}`}
-                  title={`${ach.name}: ${ach.description}`}
-                >
-                  <span className="text-xl block">{ach.icon}</span>
-                  <p className="text-[7px] text-[var(--color-text-muted)] uppercase tracking-wide mt-1 truncate">
-                    {ach.name}
-                  </p>
-                  {!ach.unlocked && (
-                    <div className="progress-retro h-1 mt-1">
-                      <div
-                        className="progress-retro-fill h-full"
-                        style={{ width: `${(ach.progress / ach.threshold) * 100}%` }}
-                      />
+            <>
+              <div className="grid grid-cols-4 gap-2">
+                {achievements.map((ach) => (
+                  <button
+                    key={ach.id}
+                    type="button"
+                    onClick={() => setSelectedAchievement(ach)}
+                    className={`card-retro p-2 text-center transition-colors hover:bg-[var(--color-surface-light)] ${
+                      ach.unlocked ? '' : 'opacity-30 grayscale'
+                    } ${
+                      selectedAchievement?.id === ach.id ? 'border-[var(--color-primary)] ring-1 ring-[var(--color-primary)]' : ''
+                    }`}
+                    title={`${ach.name}: ${ach.description}`}
+                  >
+                    <span className="text-xl block">{ach.icon}</span>
+                    <p className="text-[7px] text-[var(--color-text-muted)] uppercase tracking-wide mt-1 truncate">
+                      {ach.name}
+                    </p>
+                    {!ach.unlocked && (
+                      <div className="progress-retro h-1 mt-1">
+                        <div
+                          className="progress-retro-fill h-full"
+                          style={{ width: `${(ach.progress / ach.threshold) * 100}%` }}
+                        />
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+              {selectedAchievement && (
+                <div className="card-retro mt-3 p-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">{selectedAchievement.icon}</span>
+                    <div>
+                      <h3 className="font-bold text-sm">{selectedAchievement.name}</h3>
+                      <p className="text-[8px] uppercase tracking-widest text-[var(--color-text-muted)]">
+                        {selectedAchievement.unlocked ? 'Unlocked' : 'Locked'}
+                      </p>
                     </div>
+                  </div>
+                  <p className="text-xs mt-2">
+                    Earn this badge by {selectedAchievement.description}
+                  </p>
+                  {!selectedAchievement.unlocked && (
+                    <p className="text-[10px] text-[var(--color-text-muted)] mt-1 uppercase tracking-widest">
+                      Progress: {Math.min(selectedAchievement.progress, selectedAchievement.threshold)} / {selectedAchievement.threshold}
+                    </p>
                   )}
                 </div>
-              ))}
-            </div>
+              )}
+            </>
           )}
         </section>
       )}
